@@ -1,0 +1,179 @@
+
+project packages/apps/Launcher2/
+diff --git a/src/com/android/launcher2/AllApps3D.java b/src/com/android/launcher2/AllApps3D.java
+index 308ad28..1bb279f 100644
+--- a/src/com/android/launcher2/AllApps3D.java
++++ b/src/com/android/launcher2/AllApps3D.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.launcher2;
+ 
+@@ -46,8 +61,10 @@ import android.view.SurfaceHolder;
+ import android.view.VelocityTracker;
+ import android.view.View;
+ import android.view.ViewConfiguration;
++import android.view.ViewDebug;
+ import android.view.accessibility.AccessibilityEvent;
+ 
++import java.io.BufferedWriter;
+ import java.util.ArrayList;
+ import java.util.Arrays;
+ import java.util.Collections;
+@@ -546,11 +563,94 @@ public class AllApps3D extends RSSurfaceView
+             x += columnWidth;
+         }
+     }
++    
++    protected void dumpClass(ViewDebug.DumpControl dp) {
++        super.dumpClass(dp);
++        int iconRange[] = new int[2];
++        visibleLaunchIcons(iconRange);
++        dp.writeEntry("mFirstPosition", iconRange[0]);
++        dp.writeEntry("mItemCount", mAllAppsList.size());
++        
++        final int firstIcon = iconRange[0];
++        if(firstIcon == -1) return;  // error message already logcat'd
++        final int lastIcon = iconRange[1];
++        
++        ViewDebug.DumpControl localDp = new ViewDebug.DumpControl(dp);
++        localDp.setLevel(localDp.getLevel() + 1);
++        
++        float pos = sRollo != null ? sRollo.mScrollPos : 0;
+ 
+-    int chooseTappedIcon(int x, int y) {
++        final int baseRow = firstIcon/mColumnsPerPage;
++        for(int i = firstIcon; i <= lastIcon; i++) {
++        	int row = i/mColumnsPerPage;
++        	int y = mTouchYBorders[row - baseRow];
++            y += (pos - ((int)pos)) * (mTouchYBorders[1] - mTouchYBorders[0]);
++            int col = i - (row * mColumnsPerPage);
++            int x = mTouchXBorders[col];
++            dp.finish();
++        	dumpLaunchIcon(mAllAppsList.get(i), x, y, row, col, localDp);
++        	if(++col >= mColumnsPerPage) {
++        		y += (mTouchYBorders[1] - mTouchYBorders[0]);
++        	}
++        }
++    }
++    
++    private void dumpLaunchIcon(ApplicationInfo launcher, int x, int y, int row, int col, ViewDebug.DumpControl dp) {
++    	try {
++    		// See also ViewDebug.dumpViewWithProperties()
++    		dp.indent();
++    		dp.writeViewLikeName(launcher);
++
++    		// dump icon properties
++    		dp.writeEntry("x", x);
++    		dp.writeEntry("y", y);
++    		dp.writeEntry("getWidth()", 120);
++    		dp.writeEntry("getHeight()", 145);
++    		dp.writeEntry("row", row);
++    		dp.writeEntry("col", col);
++    		dp.writeEntry("getVisibility()", "VISIBLE");
++    		dp.writeEntry("mText", launcher.title);
++            int[] viewPos = new int[2];
++            getLocationOnScreen(viewPos);
++    		dp.writeEntry("screenX", x + viewPos[0]);
++    		dp.writeEntry("screenY", y + viewPos[1]);
++    	} catch (Exception ex) {
++    		Log.w(TAG,  "[dumpLaunchIcon] exception " + ex.getMessage() + " dumping Launch icon", ex);
++    	}
++    }
++
++    private void visibleLaunchIcons(int allAppsIndexes[]) {
+         float pos = sRollo != null ? sRollo.mScrollPos : 0;
++        Log.i("AllApps3D", "pos: " + pos);
++        //
++        // Adjust for scroll position if not zero.  I'm guessing
++        // that pos == n.f, where n is the number of rows scrolled
++        // off the top of the screen and f is the fraction of the
++        // topmost visible row that is scrolled off.  pos==2.333
++        // means that the top 2 rows are not visible and 1/3 of
++        // the 3rd row is also scrolled off the top.
++        //
++    	allAppsIndexes[0] = -1;
++    	allAppsIndexes[1] = -1;
++    	
++    	final int firstVisibleRow = (int)pos;
++    	final int firstIconIndex = firstVisibleRow * mColumnsPerPage;
++    	if(firstIconIndex >= mAllAppsList.size()) {
++    		Log.w(TAG, "all rows scrolled off?  pos: " + pos + " firstVisibleRow: " +
++    				firstVisibleRow  + "  mAllAppsList.size(): " + mAllAppsList.size());
++    		return;
++    	}
++    	allAppsIndexes[0] = firstIconIndex;
++    	
++    	int lastIconIndex = firstIconIndex + mRowsPerPage * mColumnsPerPage - 1;
++    	if(lastIconIndex >= mAllAppsList.size()) {
++    		lastIconIndex = mAllAppsList.size() - 1;
++    	}
++    	allAppsIndexes[1] = lastIconIndex;
++    }
+ 
+-        int oldY = y;
++    int chooseTappedIcon(int x, int y) {
++        float pos = sRollo != null ? sRollo.mScrollPos : 0;
+ 
+         // Adjust for scroll position if not zero.
+         y += (pos - ((int)pos)) * (mTouchYBorders[1] - mTouchYBorders[0]);
+diff --git a/src/com/android/launcher2/CellLayout.java b/src/com/android/launcher2/CellLayout.java
+index 9d39c2c..57a9372 100644
+--- a/src/com/android/launcher2/CellLayout.java
++++ b/src/com/android/launcher2/CellLayout.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.launcher2;
+ 
+@@ -888,6 +903,16 @@ out:            for (int i = x; i < x + spanX - 1 && x < xCount; i++) {
+         // Y coordinate of the view in the layout.
+         @ViewDebug.ExportedProperty
+         int y;
++        
++        protected void dumpClass(ViewDebug.DumpControl dp) {
++            dp.writeEntry("cellHSpan", cellHSpan);
++            dp.writeEntry("cellVSpan", cellVSpan);
++            dp.writeEntry("cellX", cellX);
++            dp.writeEntry("cellY", cellY);
++            dp.writeEntry("x", x);
++            dp.writeEntry("y", y);
++            super.dumpClass(dp);
++        }
+ 
+         boolean regenerateId;
+         

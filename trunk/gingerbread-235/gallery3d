@@ -1,0 +1,952 @@
+
+project packages/apps/Gallery3D/
+diff --git a/src/com/cooliris/media/GridCamera.java b/src/com/cooliris/media/GridCamera.java
+index 5902f4e..415dba9 100644
+--- a/src/com/cooliris/media/GridCamera.java
++++ b/src/com/cooliris/media/GridCamera.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.cooliris.media;
+ 
+@@ -139,6 +154,29 @@ public final class GridCamera {
+         // TODO
+     }
+ 
++/*    
++    public void convertToScreenSpace(float camX, float camY, Vector3f retVal) {
++    	retVal.x = camX - (EYE_X + mTargetPosX);
++    	retVal.y = camY - (mTargetPosY);
++    	retVal.z = 0.0f;   	
++    	convertToAbsScreen(retVal);
++    	retVal.x = retVal.x + mWidthBy2;
++    	retVal.y = retVal.y + mHeightBy2;
++    }
++    
++    private void convertToAbsScreen(Vector3f position) {
++    	float posZx = position.z;
++        float zDiscriminant = (mTanFovBy2 * (mTargetPosZ + EYE_Z + posZx));
++        zDiscriminant /= 2.0f;
++        float yRange = zDiscriminant;
++        float xRange = zDiscriminant * mAspectRatio;
++        
++        position.x = position.x/xRange;
++        position.y = position.y/yRange;
++        position.x = position.x * mWidth;
++        position.y = position.y * mHeight;
++    }
++*/    
+     public void convertToCameraSpace(float posX, float posY, float posZ, Vector3f retVal) {
+         float posXx = posX - mWidthBy2;
+         float posYx = posY - mHeightBy2;
+diff --git a/src/com/cooliris/media/GridInputProcessor.java b/src/com/cooliris/media/GridInputProcessor.java
+index a4055db..57e5096 100644
+--- a/src/com/cooliris/media/GridInputProcessor.java
++++ b/src/com/cooliris/media/GridInputProcessor.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.cooliris.media;
+ 
+@@ -20,6 +35,7 @@ import android.content.Context;
+ import android.hardware.Sensor;
+ import android.hardware.SensorEvent;
+ import android.os.SystemClock;
++import android.util.Log;
+ import android.view.Display;
+ import android.view.GestureDetector;
+ import android.view.KeyEvent;
+@@ -639,6 +655,7 @@ public final class GridInputProcessor implements GestureDetector.OnGestureListen
+     }
+ 
+     public void onLongPress(MotionEvent e) {
++    	Log.i("GridInputProcessor", "onLongPress");
+         if (mZoomGesture)
+             return;
+         if (mLayer.getFeed() != null && mLayer.getFeed().isSingleImageMode()) {
+@@ -674,6 +691,7 @@ public final class GridInputProcessor implements GestureDetector.OnGestureListen
+         GridLayer layer = mLayer;
+         int posX = (int) e.getX();
+         int posY = (int) e.getY();
++        Log.i("GridInputProcessor", "onSingleTapUp(" + mCurrentSelectedSlot +") x,y: " + posX + ", " + posY);
+         if (mCurrentSelectedSlot != Shared.INVALID) {
+             // Fullscreen mode.
+             mCamera.mConvergenceSpeed = 2.0f;
+diff --git a/src/com/cooliris/media/GridLayer.java b/src/com/cooliris/media/GridLayer.java
+index d15c266..6e0e0e6 100644
+--- a/src/com/cooliris/media/GridLayer.java
++++ b/src/com/cooliris/media/GridLayer.java
+@@ -13,9 +13,26 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.cooliris.media;
+ 
++import java.io.BufferedWriter;
++import java.io.IOException;
+ import java.util.ArrayList;
+ import javax.microedition.khronos.opengles.GL11;
+ 
+@@ -26,6 +43,7 @@ import android.os.PowerManager.WakeLock;
+ import android.util.Log;
+ import android.view.KeyEvent;
+ import android.view.MotionEvent;
++import android.view.ViewDebug;
+ import android.content.Context;
+ 
+ import com.cooliris.app.App;
+@@ -1231,6 +1249,26 @@ public final class GridLayer extends RootLayer implements MediaFeed.Listener, Ti
+         return retVal;
+     }
+ 
++    private void convertToPixelSpace(float x, float y, Vector3f newPos) {
++    	GridCamera camera = mCamera;
++    	camera.convertToCameraSpace(0, 0, 0, newPos);
++    	float upperLeftX = newPos.x * camera.mScale;
++    	float upperLeftY = newPos.y * camera.mScale;
++    	
++    	camera.convertToCameraSpace(mWidth - 1, mHeight - 1, 0, newPos);
++    	float lowerRightX = newPos.x * camera.mScale;
++    	float lowerRightY = newPos.y * camera.mScale;
++    	
++    	float cameraWidth = lowerRightX - upperLeftX;
++    	float cameraHeight = lowerRightY - upperLeftY;
++    	
++    	float xFrac = (x - upperLeftX) / cameraWidth;
++    	float yFrac = (y - upperLeftY) / cameraHeight;
++    	
++    	newPos.x = xFrac * mWidth;
++    	newPos.y = yFrac * mHeight;
++    }
++
+     public boolean tapGesture(int slotIndex, boolean metadata) {
+         MediaFeed feed = mMediaFeed;
+         if (feed == null)
+@@ -1516,7 +1554,191 @@ public final class GridLayer extends RootLayer implements MediaFeed.Listener, Ti
+             mMediaFeed.onPause();
+         }
+     }
+-
++    
++    @Override
++    protected void dump(ViewDebug.DumpControl localDp) {
++    	localDp.finish();
++    	int indentLevel = localDp.getLevel();
++    	localDp.indent();
++    	try {
++    		localDp.writeViewLikeName(this);
++
++    		dumpLayerData(localDp);
++    		localDp.writeEntry("mState", mState);
++    		localDp.writeEntry("mPerformingLayoutChange", mPerformingLayoutChange);
++			localDp.writeEntry("mVisibleRange_begin", mVisibleRange.begin);
++			localDp.writeEntry("mVisibleRange_end", mVisibleRange.end);
++			localDp.writeEntry("mCompleteRange_begin", mCompleteRange.begin);
++			localDp.writeEntry("mCompleteRange_end", mCompleteRange.end);
++			// 7/25/2011: used to subtract 1 from mItemCount, but this did not account
++			// for the HudLayer.  No longer subtracting that 1.
++			localDp.writeEntry("mItemCount", mCompleteRange.end - mCompleteRange.begin + 2);
++			localDp.writeEntry("mBufferedVisibleRange_begin", mBufferedVisibleRange.begin);
++			localDp.writeEntry("mBufferedVisibleRange_end", mBufferedVisibleRange.end);
++			localDp.writeEntry("mCamera_mItemWidth", mCamera.mItemWidth);
++			localDp.writeEntry("mCamera_mItemHeight", mCamera.mItemHeight);
++        	localDp.writeEntry("noDeleteMode()", noDeleteMode());
++        	if(mMediaFeed != null) {
++        		localDp.writeEntry("mMediaFeed_isLoading()", mMediaFeed.isLoading());
++        	}
++
++	        Pool<Vector3f> pool = mTempVec;
++	        Vector3f position = pool.create();
++	        Vector3f deltaAnchorPosition = pool.create();
++    		try {
++                deltaAnchorPosition.set(mDeltaAnchorPosition);
++                
++	    		SlotPosition slotPosition = new SlotPosition(deltaAnchorPosition, position,
++	    				mCamera.mItemWidth, mCamera.mItemHeight); 
++	            localDp.setLevel(indentLevel + 1);
++	            
++	            switch(mState) {
++	            case STATE_MEDIA_SETS:
++	            	dumpSlots(localDp, slotPosition);
++	            	break;
++	            case STATE_GRID_VIEW:
++	            	dumpVisibleItems(localDp, slotPosition);
++	            	break;
++	            case STATE_FULL_SCREEN:
++	            	dumpVisibleItems(localDp, slotPosition);
++	            	break;
++	            case STATE_TIMELINE:
++	            	dumpSlots(localDp, slotPosition);
++	            	break;
++	            }
++    		} catch (Exception ex) {
++    			Log.e(TAG, "[GridLayer]dump exception", ex);
++    		} finally {
++                pool.delete(deltaAnchorPosition);
++                pool.delete(position);    			
++    		}
++
++    		localDp.setLevel(indentLevel + 1);
++    		mHud.dump(localDp);
++    	} catch (Exception ex) {
++    		Log.w(TAG, "Exception dumping GridLayer", ex);
++    	}
++    }
++
++    private void dumpVisibleItems(ViewDebug.DumpControl localDp, SlotPosition slotPosition) {
++    	int curLevel = localDp.getLevel();
++    	for(int i = mVisibleRange.begin; i <= mVisibleRange.end; i++) {
++    		DisplayItem item = getDisplayItemForSlotId(i);
++    		MediaItem mediaItem = item.mItemRef;
++        	localDp.setLevel(curLevel);
++    		mediaItem.dumpParams(localDp);
++    		slotPosition.dumpSlotLocation(localDp, i);
++    	}
++    }
++
++    /**
++     * This routine is sort of derived from hitTest, modified to
++     * dump the test ranges instead of examining them.
++     * @return
++     */
++    private void dumpSlots(ViewDebug.DumpControl localDp, SlotPosition slotPosition) {
++        int firstSlotIndex = 0;
++        int lastSlotIndex = 0;
++        IndexRange rangeToUse = mVisibleRange;
++        synchronized (rangeToUse) {
++            firstSlotIndex = rangeToUse.begin;
++            lastSlotIndex = rangeToUse.end;
++        }
++        for (int i = firstSlotIndex; i <= lastSlotIndex; ++i) {
++        	//int indexIntoSlots = i - firstSlotIndex;
++        	// When the display shows stacks of pictures and each stack has
++        	// a title underneath. like "pics (3)", where pics is the name
++        	// of the folder on the SDcard and 3 is the number of pictures,
++        	// the only place I know of to find that title is in the MediaSet
++        	// object.  The only list that I know of that has a pointer to
++        	// the MediaSet is mDisplaySlots[].  The display item for the slot
++        	// will be the topmost picture.
++        	DisplaySlot slot = mDisplaySlots[i];
++        	//DisplayItem displayItem = getDisplayItemForSlotId(i);
++        	if(slot == null) continue;
++        	//if(displayItem == null) continue;
++        	MediaSet mediaSet = slot.getMediaSet();
++        	if(mediaSet == null) continue;
++        	
++        	// finish last line, indent next line
++        	localDp.finish();
++            localDp.indent();
++            
++        	localDp.writeViewLikeName(mediaSet);
++        	
++        	localDp.writeEntry("mText", mediaSet.mTruncTitleString);
++        	localDp.writeEntry("mTitleString", mediaSet.mTitleString);
++        	localDp.writeEntry("mId", mediaSet.mId);
++        	localDp.writeEntry("mName", mediaSet.mName);
++        	localDp.writeEntry("isPicassaAlbum()", mediaSet.isPicassaAlbum());
++        	localDp.writeEntry("isPicassaSet()", mediaSet.isPicassaSet());
++//         	localDp.writeEntryNoSuf("mHasImages", mediaSet.mHasImages);
++//         	localDp.writeEntryNoSuf("mHasVideos", mediaSet.mHasVideos);
++            	
++           	slotPosition.dumpSlotLocation(localDp, i);
++   
++           	ArrayList<MediaItem> mediaItems = mediaSet.getItems();
++        	if(mediaItems != null) {
++        		localDp.writeEntry("mItems_size", mediaItems.size());
++		
++        		// In all cases, lets describe the top MediaItem
++        		MediaItem topItem = mediaSet.getItems().get(0);
++        		if(topItem != null) {
++            		int curLevel = localDp.getLevel();
++            		localDp.setLevel(curLevel + 1);
++        			topItem.dumpParams(localDp);
++        			localDp.setLevel(curLevel);
++        		}
++        	}
++        }
++    }
++
++    class SlotPosition {
++        float itemWidthBy2;
++        float itemHeightBy2;
++        Vector3f deltaAnchorPosition;
++        Vector3f position;
++        
++        public SlotPosition(
++        		Vector3f deltaAnchorPosition,
++        		Vector3f position,
++        		int itemWidth, 
++        		int itemHeight)
++        {
++        	this.deltaAnchorPosition = deltaAnchorPosition;
++        	this.position = position;
++        	this.itemWidthBy2 = itemWidth/2;
++        	this.itemHeightBy2 = itemHeight/2;
++        }
++
++        /**
++         * Add position information for the visible object to the ViewDebug dump.
++         * @param localDp - the ViewDebug printing state
++         * @param slotIndex - the index from the visible range.
++         */
++	    private void dumpSlotLocation(ViewDebug.DumpControl localDp, int slotIndex) {
++	        GridCameraManager.getSlotPositionForSlotIndex(slotIndex, mCamera, mLayoutInterface, deltaAnchorPosition, position);
++	        float left = position.x - itemWidthBy2;
++	        float right = position.x + itemWidthBy2;
++	        float top = position.y - itemHeightBy2;
++	        float bottom = position.y + itemHeightBy2;
++	        
++	        // reuse position
++			convertToPixelSpace(left, top, position);
++			int mLeft = (int) position.x;
++			int mTop = (int) position.y;
++			localDp.writeEntry("mLeft", mLeft);
++			localDp.writeEntry("mTop", mTop);
++	    
++			convertToPixelSpace(right, bottom, position);
++			localDp.writeEntry("mRight", (int) position.x);
++			localDp.writeEntry("mBottom", (int) position.y);
++			localDp.writeEntry("getWidth()", (int) (position.x - mLeft));
++			localDp.writeEntry("getHeight()",(int)  (position.y - mTop));
++	    }
++    	
++    }
++    
+     public void setEnterSelectionMode(boolean enterSelection) {
+         mRequestToEnterSelection = enterSelection;
+     }
+diff --git a/src/com/cooliris/media/HudLayer.java b/src/com/cooliris/media/HudLayer.java
+index a449603..50e00a0 100644
+--- a/src/com/cooliris/media/HudLayer.java
++++ b/src/com/cooliris/media/HudLayer.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.cooliris.media;
+ 
+@@ -33,7 +48,9 @@ import android.content.res.Resources;
+ import android.net.Uri;
+ import android.provider.MediaStore;
+ import android.util.FloatMath;
++import android.util.Log;
+ import android.view.MotionEvent;
++import android.view.ViewDebug;
+ 
+ import com.cooliris.app.App;
+ import com.cooliris.app.Res;
+@@ -479,6 +496,11 @@ public final class HudLayer extends Layer {
+         if (mGridLayer == null)
+             return;
+         final int state = mGridLayer.getState();
++        try {
++        	throw new Exception("fake");
++        } catch (Exception x) {
++        	Log.i("HudLayer", "updateViews state=" + state + " mMode=" + mMode, x);
++        }
+         // Show the selection menu in selection mode.
+         final boolean selectionMode = mMode == MODE_SELECT;
+         final boolean fullscreenMode = state == GridLayer.STATE_FULL_SCREEN;
+@@ -842,6 +864,44 @@ public final class HudLayer extends Layer {
+         }
+     }
+ 
++    @Override
++    protected void dump(ViewDebug.DumpControl localDp) {
++    	localDp.finish();
++    	localDp.indent();
++    	localDp.writeViewLikeName(this);
++    	localDp.writeEntry("mMode", mMode);
++    	localDp.writeEntry("isLoaded()", isLoaded());
++    	localDp.writeEntry("mAutoHide", mAutoHide);
++    	localDp.writeEntry("mAlpha", mAlpha);
++    	localDp.writeEntry("mAnimAlpha", mAnimAlpha);
++    	localDp.writeEntry("mCachedCaption", mCachedCaption);
++    	localDp.writeEntry("mCachedPosition", mCachedPosition);
++    	localDp.writeEntry("mCachedCurrentLabel", mCachedCurrentLabel);
++    	localDp.writeEntry("getVisibility()", "VISIBLE");
++    	
++        int childIndentLevel = localDp.getLevel() + 1;
++        dumpHudLayer(mTopRightButton, "TopRightButton", localDp, childIndentLevel);
++        dumpHudLayer(mZoomInButton, "ZoomInButton", localDp, childIndentLevel);
++        dumpHudLayer(mZoomOutButton, "ZoomOutButton", localDp, childIndentLevel);
++        dumpHudLayer(mTimeBar, "TimeBar", localDp, childIndentLevel);
++        dumpHudLayer(mSelectionMenuTop, "SelectionMenuTop", localDp, childIndentLevel);
++        dumpHudLayer(mSelectionMenuBottom, "SelectionMenuBottom", localDp, childIndentLevel);
++        dumpHudLayer(mFullscreenMenu, "FullScreenMenu", localDp, childIndentLevel);
++        dumpHudLayer(mPathBar, "PathBar", localDp, childIndentLevel);
++    }
++    
++    private void dumpHudLayer(Layer layer, String name, ViewDebug.DumpControl localDp, int indentLevel) {
++    	localDp.setLevel(indentLevel);
++    	if(layer != null) {
++    		localDp.finish();
++    		localDp.indent();
++    		localDp.writeViewLikeName(layer);
++    		localDp.writeEntry("hudName", name);
++    		layer.dumpLayerData(localDp);
++    		layer.dump(localDp);
++    	}
++    }
++    
+     public Layer getMenuBar() {
+         return mFullscreenMenu;
+     }
+diff --git a/src/com/cooliris/media/ImageButton.java b/src/com/cooliris/media/ImageButton.java
+index d8e141b..8a0a8ee 100644
+--- a/src/com/cooliris/media/ImageButton.java
++++ b/src/com/cooliris/media/ImageButton.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.cooliris.media;
+ 
+@@ -20,6 +35,7 @@ import javax.microedition.khronos.opengles.GL11;
+ 
+ import android.os.SystemClock;
+ import android.view.MotionEvent;
++import android.view.ViewDebug;
+ 
+ import com.cooliris.app.Res;
+ import com.cooliris.media.RenderView.Lists;
+@@ -127,6 +143,15 @@ public final class ImageButton extends Layer {
+         return true;
+     }
+ 
++    @Override
++    protected void dump(ViewDebug.DumpControl localDp) {
++    	localDp.writeEntry("mPressed", mPressed);
++    	localDp.writeEntry("mFade", mFade);
++    	localDp.writeEntry("mImage", mImage);
++    	localDp.writeEntry("mPressedImage", mPressedImage);
++    	localDp.writeEntry("mCurrentImage", mCurrentImage);
++    }
++    
+     private void setImage(int image, boolean animate) {
+         if (mCurrentImage != image) {
+             if (animate) {
+diff --git a/src/com/cooliris/media/Layer.java b/src/com/cooliris/media/Layer.java
+index ba8c083..6321fea 100644
+--- a/src/com/cooliris/media/Layer.java
++++ b/src/com/cooliris/media/Layer.java
+@@ -13,12 +13,28 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.cooliris.media;
+ 
+ import javax.microedition.khronos.opengles.GL11;
+ 
+ import android.view.MotionEvent;
++import android.view.ViewDebug;
+ 
+ public abstract class Layer {
+     float mX = 0f;
+@@ -98,4 +114,19 @@ public abstract class Layer {
+ 
+     protected void onHiddenChanged() {
+     }
++    
++    protected void dump(ViewDebug.DumpControl localDp) {
++    }
++    
++    protected void dumpLayerData(ViewDebug.DumpControl localDp) {
++		localDp.writeEntry("mLeft", (int) mX);
++		localDp.writeEntry("mTop", (int) mY);
++		localDp.writeEntry("getHeight()", (int) mHeight);
++		localDp.writeEntry("getWidth()", (int) mWidth);
++		localDp.writeEntry("mRight", (int) (mX + mWidth - 1.0f));
++		localDp.writeEntry("mBottom", (int) (mY + mHeight  - 1.0f));
++		String visible = "VISIBLE";
++		if(mHidden) visible = "GONE";
++		localDp.writeEntry("getVisibility()", visible);
++    }
+ }
+diff --git a/src/com/cooliris/media/MediaItem.java b/src/com/cooliris/media/MediaItem.java
+index 2a89202..7e426e0 100644
+--- a/src/com/cooliris/media/MediaItem.java
++++ b/src/com/cooliris/media/MediaItem.java
+@@ -13,11 +13,28 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.cooliris.media;
+ 
+ import java.util.Date;
+ 
++import android.view.ViewDebug;
++
+ public final class MediaItem {
+     public static final int MEDIA_TYPE_IMAGE = 0;
+     public static final int MEDIA_TYPE_VIDEO = 1;
+@@ -146,6 +163,22 @@ public final class MediaItem {
+         mDisplayMimeType = displayMimeType;
+     }
+ 
++    protected void dumpParams(ViewDebug.DumpControl localDp) {
++    	localDp.finish();
++    	localDp.indent();
++    	
++    	localDp.writeViewLikeName(this);
++    	localDp.writeEntry("mCaption", mCaption);
++    	localDp.writeEntry("mId", mId);
++    	localDp.writeEntry("getMediaType()", getMediaType());
++    	localDp.writeEntry("mMimeType", mMimeType);
++    	localDp.writeEntry("mContentUri", mContentUri);
++    	localDp.writeEntry("mFilePath", mFilePath);
++    	localDp.writeEntry("mDateAddedInSec", mDateAddedInSec);
++    	localDp.writeEntry("mDateModifiedInSec", mDateModifiedInSec);
++    	localDp.writeEntry("mDateTakenInMs", mDateTakenInMs);
++    }
++
+     public String getReverseGeocodedLocation(ReverseGeocoder reverseGeocoder) {
+         if (mReverseGeocodedLocation != null) {
+             return mReverseGeocodedLocation;
+diff --git a/src/com/cooliris/media/MenuBar.java b/src/com/cooliris/media/MenuBar.java
+index b118741..2b490ab 100644
+--- a/src/com/cooliris/media/MenuBar.java
++++ b/src/com/cooliris/media/MenuBar.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.cooliris.media;
+ 
+@@ -22,6 +37,7 @@ import javax.microedition.khronos.opengles.GL11;
+ 
+ import android.content.Context;
+ import android.view.MotionEvent;
++import android.view.ViewDebug;
+ 
+ import com.cooliris.app.App;
+ import com.cooliris.app.Res;
+@@ -433,6 +449,7 @@ public final class MenuBar extends Layer implements PopupMenu.Listener {
+         private int x;
+         private int mWidth;
+         private static final float ICON_WIDTH = 45.0f;
++        
+ 
+         public static final class Builder {
+             private final String title;
+@@ -516,6 +533,47 @@ public final class MenuBar extends Layer implements PopupMenu.Listener {
+         }
+ 
+     }
++    
++    @Override
++    protected void dump(ViewDebug.DumpControl localDp) {
++    	localDp.writeEntry("HEIGHT", HEIGHT);
++    	
++    	int menuLevel = localDp.getLevel() + 1;
++    	localDp.setLevel(menuLevel);
++    	for(int i = 0; i < mMenus.length; i++) {
++    		dumpMenu(localDp, mMenus[i]);
++        	localDp.setLevel(menuLevel);		
++    	}
++
++    	// There is one submenu, reused by each menu item that
++    	// has a popup.  If a popup is being displayed mSubmenu
++    	// points to that PopupMenu object.  Unindent the
++    	// submenu; logically it is hanging off the HUD Layer.
++    	if(mSubmenu != null) {
++    		localDp.setLevel(menuLevel - 1);
++    		mSubmenu.dump(localDp);
++    	}
++   		localDp.setLevel(menuLevel);
++    }
++    
++    private void dumpMenu(ViewDebug.DumpControl localDp, Menu menu) {
++    	if(menu == null) return;
++    	localDp.finish();
++    	localDp.indent();
++    	localDp.writeViewLikeName(menu);
++    	
++    	//localDp.writeEntryNoSuf("x", menu.x);
++    	//localDp.writeEntryNoSuf("mWidth", menu.mWidth);
++    	
++    	localDp.writeEntry("mLeft", menu.x);
++    	localDp.writeEntry("mTop", mY);
++    	localDp.writeEntry("mRight", menu.x + menu.mWidth - 1);
++    	localDp.writeEntry("mBottom", mY + mHeight - 1);
++    	localDp.writeEntry("getWidth()", menu.mWidth);
++    	localDp.writeEntry("getHeight()", mHeight);
++    	
++    	localDp.writeEntry("mText", menu.title);
++    }
+ 
+     public void onSelectionChanged(PopupMenu menu, int selectedIndex) {
+         mTouchMenuItem = selectedIndex;
+diff --git a/src/com/cooliris/media/PathBarLayer.java b/src/com/cooliris/media/PathBarLayer.java
+index c09c407..beda305 100644
+--- a/src/com/cooliris/media/PathBarLayer.java
++++ b/src/com/cooliris/media/PathBarLayer.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.cooliris.media;
+ 
+@@ -22,6 +37,7 @@ import javax.microedition.khronos.opengles.GL11;
+ 
+ import android.graphics.Typeface;
+ import android.view.MotionEvent;
++import android.view.ViewDebug;
+ 
+ import com.cooliris.app.App;
+ import com.cooliris.app.Res;
+@@ -301,6 +317,25 @@ public final class PathBarLayer extends Layer {
+             return mComponents.size();
+         }
+     }
++    
++    @Override
++    protected void dump(ViewDebug.DumpControl localDp) {
++    	localDp.writeEntry("getNumlevels()", getNumLevels());
++    	
++    	localDp.setLevel(localDp.getLevel() + 1);
++    	int numLevels = getNumLevels();
++    	for(int i = 0; i < numLevels; i++) {
++    		localDp.finish();
++    		localDp.indent();
++    		Component component = mComponents.get(i);
++    		if(component != null) {
++    			localDp.writeViewLikeName(component);
++    			localDp.writeEntry("x", component.x);
++    			localDp.writeEntry("width", component.width);
++    			localDp.writeEntry("origString", component.origString);
++    		}
++    	}
++    }
+ 
+     public void clear() {
+         synchronized (mComponents) {
+diff --git a/src/com/cooliris/media/PopupMenu.java b/src/com/cooliris/media/PopupMenu.java
+index 86c14b8..97b6797 100644
+--- a/src/com/cooliris/media/PopupMenu.java
++++ b/src/com/cooliris/media/PopupMenu.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.cooliris.media;
+ 
+@@ -32,6 +47,7 @@ import android.graphics.drawable.Drawable;
+ import android.os.SystemClock;
+ import android.text.TextPaint;
+ import android.view.MotionEvent;
++import android.view.ViewDebug;
+ 
+ import com.cooliris.app.App;
+ import com.cooliris.app.Res;
+@@ -285,8 +301,42 @@ public final class PopupMenu extends Layer {
+             mIcon = icon;
+             mAction = action;
+         }
++        
++        protected void dump(ViewDebug.DumpControl localDp) {
++        	localDp.finish();
++        	localDp.indent();
++        	localDp.writeViewLikeName(this);
++        	
++        	localDp.writeEntry("mText", mTitle);
++        	localDp.writeEntry("mBottom", mBottom);
++        }
+     }
+-
++    
++    protected void dump(ViewDebug.DumpControl localDp) {
++    	localDp.finish();
++    	localDp.indent();
++    	localDp.writeViewLikeName(this);
++    	
++    	dumpLayerData(localDp);
++    	localDp.writeEntry("mShow", mShow);
++
++    	int optionLevel = localDp.getLevel() + 1;
++    	
++        int top = (int) (PADDING_TOP * App.PIXEL_DENSITY);
++        int rowHeight = (int) (mRowHeight * App.PIXEL_DENSITY);
++        Option[] options = mOptions;       
++        int numOptions = options.length;
++        for(int i = 0; i < numOptions; i++) {
++        	localDp.setLevel(optionLevel);
++        	options[i].dump(localDp);
++        	localDp.writeEntry("mleft", mX);
++        	localDp.writeEntry("mTop", top);
++        	localDp.writeEntry("getWidth()", mWidth);
++        	localDp.writeEntry("getHeight()", mRowHeight);
++        	top += rowHeight; 
++        }
++    }
++    
+     private final class PopupTexture extends CanvasTexture {
+         private final NinePatch mBackground;
+         private final NinePatch mHighlightSelected;
+diff --git a/src/com/cooliris/media/RenderView.java b/src/com/cooliris/media/RenderView.java
+index 0b76892..61438a0 100644
+--- a/src/com/cooliris/media/RenderView.java
++++ b/src/com/cooliris/media/RenderView.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.cooliris.media;
+ 
+@@ -34,6 +49,7 @@ import android.util.SparseArray;
+ import android.view.KeyEvent;
+ import android.view.MotionEvent;
+ import android.view.SurfaceHolder;
++import android.view.ViewDebug;
+ 
+ import java.lang.ref.ReferenceQueue;
+ import java.lang.ref.WeakReference;
+@@ -1064,6 +1080,24 @@ public final class RenderView extends GLSurfaceView implements GLSurfaceView.Ren
+             mRootLayer.handleLowMemory();
+         }
+     }
++    
++    protected void dumpClass(ViewDebug.DumpControl dp) {
++        super.dumpClass(dp);
++        dp.writeEntry("mListsDirty", mListsDirty);
++        dp.writeEntry("mLoadingExpensiveTexturesStartTime", mLoadingExpensiveTexturesStartTime);
++        
++        ViewDebug.DumpControl localDp = new ViewDebug.DumpControl(dp);
++        localDp.setLevel(localDp.getLevel() + 1);
++        
++        // The GridLayer is the rootLayer.  It "spawns" the
++        // background layer and the Hud layer.  The Hud layer
++        // spawns menus and buttons.
++        if(mRootLayer != null) {
++            mRootLayer.dump(localDp);
++        }
++    }
++ 
++
+ 
+     public Lists getLists() {
+         return sLists;
+diff --git a/src/com/cooliris/media/TimeBar.java b/src/com/cooliris/media/TimeBar.java
+index 95a2a60..d4d8fbf 100644
+--- a/src/com/cooliris/media/TimeBar.java
++++ b/src/com/cooliris/media/TimeBar.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.cooliris.media;
+ 
+@@ -34,6 +49,7 @@ import android.graphics.PorterDuffXfermode;
+ import android.graphics.Rect;
+ import android.util.SparseArray;
+ import android.view.MotionEvent;
++import android.view.ViewDebug;
+ 
+ import com.cooliris.app.App;
+ import com.cooliris.app.Res;
+@@ -533,6 +549,10 @@ public final class TimeBar extends Layer implements MediaFeed.Listener {
+         }
+         return label;
+     }
++    
++    @Override
++    protected void dump(ViewDebug.DumpControl localDp) {
++    }
+ 
+     public boolean isDragged() {
+         return mInDrag;
+

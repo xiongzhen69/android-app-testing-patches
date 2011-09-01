@@ -1,0 +1,700 @@
+
+project packages/apps/Camera/
+diff --git a/src/com/android/camera/ui/BasicIndicator.java b/src/com/android/camera/ui/BasicIndicator.java
+index 7630a8e..aeb0d76 100644
+--- a/src/com/android/camera/ui/BasicIndicator.java
++++ b/src/com/android/camera/ui/BasicIndicator.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.camera.ui;
+ 
+@@ -88,6 +103,13 @@ class BasicIndicator extends AbstractIndicator {
+         mIndex = newIndex;
+         invalidate();
+     }
++    
++    public String getDumpId() {
++    	if(mPreference.getKey() != null) {
++    		return "id/" + mPreference.getKey();
++    	}
++    	return null;
++    }
+ 
+     private class MyListener implements OnItemSelectedListener {
+ 
+diff --git a/src/com/android/camera/ui/CameraHeadUpDisplay.java b/src/com/android/camera/ui/CameraHeadUpDisplay.java
+index 473ec2a..3ac5731 100644
+--- a/src/com/android/camera/ui/CameraHeadUpDisplay.java
++++ b/src/com/android/camera/ui/CameraHeadUpDisplay.java
+@@ -13,10 +13,26 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.camera.ui;
+ 
+ import android.content.Context;
++import android.view.ViewDebug;
+ 
+ import com.android.camera.CameraSettings;
+ import com.android.camera.IconListPreference;
+@@ -89,6 +105,31 @@ public class CameraHeadUpDisplay extends HeadUpDisplay {
+ 
+         mIndicatorBar.setOrientation(mInitialOrientation);
+     }
++    
++    protected void dumpClass(ViewDebug.DumpControl localDp) {
++    	localDp.finish();
++    	int indentLevel = localDp.getLevel();
++    	localDp.indent();
++    	
++    	try {
++    		super.dumpClass(localDp);
++    		localDp.writeEntry("mInitialOrientation", mInitialOrientation);
++    		
++    		// dump the indicator bar.
++    		localDp.setLevel(indentLevel + 1);
++    		mIndicatorBar.dumpClass(localDp);
++    		
++    		// If a preference menu is visible, dump it
++    		localDp.setLevel(indentLevel + 1);
++    		dumpVisiblePreferencePopup(localDp);
++    		
++    		// dump the GPS indicator (I've never seen this on a real camera)
++    		// dump the zoom indicator (ditto)
++    		
++    	} catch (Exception x) {
++    		localDp.writeEntry("exception", x.toString());
++    	}
++    }
+ 
+     public void setZoomListener(ZoomControllerListener listener) {
+         // The rendering thread won't access listener variable, so we don't
+diff --git a/src/com/android/camera/ui/GLListView.java b/src/com/android/camera/ui/GLListView.java
+index c1bc11a..23af137 100644
+--- a/src/com/android/camera/ui/GLListView.java
++++ b/src/com/android/camera/ui/GLListView.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.camera.ui;
+ 
+@@ -24,6 +39,7 @@ import android.os.Handler;
+ import android.os.Message;
+ import android.view.GestureDetector;
+ import android.view.MotionEvent;
++import android.view.ViewDebug;
+ import android.view.View.MeasureSpec;
+ import android.view.animation.AlphaAnimation;
+ import android.view.animation.Animation;
+@@ -135,6 +151,22 @@ class GLListView extends GLView {
+         requestLayout();
+     }
+ 
++    protected void dumpClass(ViewDebug.DumpControl localDp) {
++    	super.dumpClass(localDp);
++    	localDp.writeEntry("mFirstPosition", mVisibleStart);
++    	localDp.writeEntry("mItemCount", mModel.size());
++    	int childIndent = localDp.getLevel() + 1;
++    	
++        for (int i = mVisibleStart, n = mVisibleEnd; i < n; ++i) {
++            GLView child = mModel.getView(i);
++            localDp.finish();
++            localDp.setLevel(childIndent);
++            localDp.indent();
++            // GLOptionHeader, GLOptionItem
++            child.dumpClass(localDp);
++        }
++    }
++
+     public void setOnItemSelectedListener(OnItemSelectedListener l) {
+         mOnItemSelectedListener = l;
+     }
+diff --git a/src/com/android/camera/ui/GLOptionHeader.java b/src/com/android/camera/ui/GLOptionHeader.java
+index c702943..c78a6f2 100644
+--- a/src/com/android/camera/ui/GLOptionHeader.java
++++ b/src/com/android/camera/ui/GLOptionHeader.java
+@@ -13,12 +13,28 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.camera.ui;
+ 
+ import static com.android.camera.ui.GLRootView.dpToPixel;
+ import android.content.Context;
+ import android.graphics.Rect;
++import android.view.ViewDebug;
+ 
+ import javax.microedition.khronos.opengles.GL11;
+ 
+@@ -50,6 +66,11 @@ class GLOptionHeader extends GLView {
+         setPaddings(sHorizontalPaddings,
+                 sVerticalPaddings, sHorizontalPaddings, sVerticalPaddings);
+     }
++    
++    protected void dumpClass(ViewDebug.DumpControl localDp) {
++    	super.dumpClass(localDp);
++    	localDp.writeEntry("mText", mTitle.getText());
++    }
+ 
+     public void setBackground(Texture background) {
+         if (mBackground == background) return;
+diff --git a/src/com/android/camera/ui/GLOptionItem.java b/src/com/android/camera/ui/GLOptionItem.java
+index 55be3eb..58d30d8 100644
+--- a/src/com/android/camera/ui/GLOptionItem.java
++++ b/src/com/android/camera/ui/GLOptionItem.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.camera.ui;
+ 
+@@ -20,6 +35,7 @@ import static com.android.camera.ui.GLRootView.dpToPixel;
+ import android.content.Context;
+ import android.graphics.Color;
+ import android.graphics.Rect;
++import android.view.ViewDebug;
+ import android.view.animation.Transformation;
+ 
+ import com.android.camera.R;
+@@ -87,6 +103,12 @@ class GLOptionItem extends GLView {
+         setPaddings(sHorizontalPaddings,
+                 sVerticalPaddings, sHorizontalPaddings, sVerticalPaddings);
+     }
++    
++    protected void dumpClass(ViewDebug.DumpControl localDp) {
++    	super.dumpClass(localDp);
++    	localDp.writeEntry("mText", mText.getText());
++    	localDp.writeEntry("mEnabled", mEnabled);
++    }
+ 
+     @Override
+     protected void onMeasure(int widthSpec, int heightSpec) {
+diff --git a/src/com/android/camera/ui/GLRootView.java b/src/com/android/camera/ui/GLRootView.java
+index e7ac5e3..004d11a 100644
+--- a/src/com/android/camera/ui/GLRootView.java
++++ b/src/com/android/camera/ui/GLRootView.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.camera.ui;
+ 
+@@ -30,6 +45,7 @@ import android.util.AttributeSet;
+ import android.util.DisplayMetrics;
+ import android.util.Log;
+ import android.view.MotionEvent;
++import android.view.ViewDebug;
+ import android.view.animation.Animation;
+ import android.view.animation.Transformation;
+ 
+@@ -302,6 +318,26 @@ public class GLRootView extends GLSurfaceView
+         matrix.preScale(1, -1);
+     }
+ 
++    /**
++     * expose the view that is layed over the camera's
++     * preview window, so automated tests can see the
++     * menus, etc.
++     */
++    protected void dumpClass(ViewDebug.DumpControl dp) {
++    	super.dumpClass(dp);
++    	if(mContentView != null) {
++    		if(mContentView instanceof CameraHeadUpDisplay) {
++    			ViewDebug.DumpControl localDp = new ViewDebug.DumpControl(dp);
++    			localDp.setLevel(dp.getLevel() + 1);
++    			((CameraHeadUpDisplay) mContentView).dumpClass(localDp);
++    		} else {
++    			dp.writeEntry("wrongHUDType", "mContentView is a " + mContentView.getClass().getName());
++    		}
++    	} else {
++    		dp.writeEntry("nullHUD", "mContentView is null");
++    	}
++    }
++
+     private void setAlphaValue(float alpha) {
+         if (mLastAlpha == alpha) return;
+ 
+diff --git a/src/com/android/camera/ui/GLView.java b/src/com/android/camera/ui/GLView.java
+index 184016e..c530315 100644
+--- a/src/com/android/camera/ui/GLView.java
++++ b/src/com/android/camera/ui/GLView.java
+@@ -13,13 +13,30 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.camera.ui;
+ 
+ import android.graphics.Matrix;
+ import android.graphics.Rect;
+ import android.os.SystemClock;
++import android.util.Log;
+ import android.view.MotionEvent;
++import android.view.ViewDebug;
+ import android.view.animation.Animation;
+ import android.view.animation.Transformation;
+ 
+@@ -172,6 +189,34 @@ public class GLView {
+         mOnTouchListener = listener;
+     }
+ 
++    /**
++     * Base dumpClass for GLView derived classes.  This is where the
++     * name of the class (writeViewLikeName() is called).
++     * @param localDp
++     */
++    protected void dumpClass(ViewDebug.DumpControl localDp) {
++		localDp.writeViewLikeName(this);
++		
++    	String visibility = "VISIBLE";
++    	if(getVisibility() != GLView.VISIBLE) visibility = "INVISIBLE";
++    	
++    	localDp.writeEntry("getVisibility()", visibility);
++    	localDp.writeEntry("mLeft", mBounds.left);
++    	localDp.writeEntry("mTop", mBounds.top);
++        localDp.writeEntry("mMeasuredHeight", mMeasuredHeight);
++        localDp.writeEntry("mMeasuredWidth", mMeasuredWidth);
++        localDp.writeEntry("getHeight()", mBounds.bottom - mBounds.top);
++        localDp.writeEntry("getWidth()", mBounds.right - mBounds.left);
++        localDp.writeEntry("mBottom", mBounds.bottom);
++        localDp.writeEntry("mRight", mBounds.right);
++        localDp.writeEntry("mScrollY", mScrollY);
++        if(mParent != null) {
++        	// just for debugging
++        	String parentName = mParent.getClass().getName() + "@" + Integer.toHexString(mParent.hashCode());
++        	localDp.writeEntry("mParent", parentName);
++        }
++    }
++    
+     public void invalidate() {
+         GLRootView root = getGLRootView();
+         if (root != null) root.requestRender();
+@@ -228,8 +273,10 @@ public class GLView {
+ 
+     protected boolean onTouch(MotionEvent event) {
+         if (mOnTouchListener != null) {
++        	Log.i("GLView","onTouch, listener=" + mOnTouchListener.getClass().getName());
+             return mOnTouchListener.onTouch(this, event);
+         }
++        Log.i("GLView", "noListener");
+         return false;
+     }
+ 
+@@ -238,6 +285,7 @@ public class GLView {
+         Rect rect = component.mBounds;
+         int left = rect.left;
+         int top = rect.top;
++        Log.i("GLView", this.getClass().getName() + " (x,y) in [ltrb]=("+x+","+y+") in ["+left+","+top+","+rect.right+","+rect.bottom+"]");
+         if (!checkBounds || rect.contains(x, y)) {
+             event.offsetLocation(-left, -top);
+             if (component.dispatchTouchEvent(event)) {
+@@ -253,6 +301,7 @@ public class GLView {
+         int x = (int) event.getX();
+         int y = (int) event.getY();
+         int action = event.getAction();
++        Log.i("GLView", "(x,y)=("+x+","+y+") action:" + action);
+         if (mMotionTarget != null) {
+             if (action == MotionEvent.ACTION_DOWN) {
+                 MotionEvent cancel = MotionEvent.obtain(event);
+diff --git a/src/com/android/camera/ui/HeadUpDisplay.java b/src/com/android/camera/ui/HeadUpDisplay.java
+index 1b0415f..efc042e 100644
+--- a/src/com/android/camera/ui/HeadUpDisplay.java
++++ b/src/com/android/camera/ui/HeadUpDisplay.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.camera.ui;
+ 
+@@ -31,6 +46,7 @@ import android.os.Message;
+ import android.util.DisplayMetrics;
+ import android.view.MotionEvent;
+ import android.view.View.MeasureSpec;
++import android.view.ViewDebug;
+ import android.view.animation.AlphaAnimation;
+ import android.view.animation.Animation;
+ 
+@@ -127,6 +143,20 @@ public class HeadUpDisplay extends GLView {
+         sPopupTriangleOffset = dpToPixel(context, POPUP_TRIANGLE_OFFSET);
+     }
+ 
++    protected void dumpClass(ViewDebug.DumpControl localDp) {
++    	super.dumpClass(localDp);
++    	localDp.writeEntry("enabled", mEnabled);
++    	localDp.writeEntry("mOrientation", mOrientation);
++    }
++    
++    protected void dumpVisiblePreferencePopup(ViewDebug.DumpControl localDp) {
++    	if (mPopupWindow.getVisibility() == GLView.VISIBLE) {
++    		localDp.finish();
++    		localDp.indent();
++    		mPopupWindow.dumpClass(localDp);
++    	}
++    }
++
+     /**
+      * The callback interface. All the callbacks will be called from the
+      * GLThread.
+@@ -370,7 +400,7 @@ public class HeadUpDisplay extends GLView {
+             hidePopupWindow();
+         }
+     }
+-
++    
+     public boolean collapse() {
+         // We don't need to synchronize on GLRootView, since both the
+         // <code>isActivated()</code> and rendering thread are read-only to
+diff --git a/src/com/android/camera/ui/IndicatorBar.java b/src/com/android/camera/ui/IndicatorBar.java
+index 95098b9..966e346 100644
+--- a/src/com/android/camera/ui/IndicatorBar.java
++++ b/src/com/android/camera/ui/IndicatorBar.java
+@@ -13,14 +13,32 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.camera.ui;
+ 
+ import javax.microedition.khronos.opengles.GL11;
+ 
++import com.android.camera.CameraSettings;
++
+ import android.graphics.Rect;
+ import android.view.MotionEvent;
+ import android.view.View.MeasureSpec;
++import android.view.ViewDebug;
+ import android.view.animation.AlphaAnimation;
+ 
+ class IndicatorBar extends GLView {
+@@ -139,6 +157,42 @@ class IndicatorBar extends GLView {
+         }
+         invalidate();
+     }
++    
++    protected void dumpClass(ViewDebug.DumpControl localDp) {
++    	localDp.finish();
++    	int indentLevel = localDp.getLevel();
++    	localDp.indent();
++    	
++    	try {
++    		super.dumpClass(localDp);
++    		localDp.writeEntry("mSelectedIndex", mSelectedIndex);
++    		localDp.writeEntry("mActivated", mActivated);
++    		localDp.writeEntry("getComponentCount()", getComponentCount());
++
++    		for(int i = 1, n = getComponentCount(); i < n; i++) {
++    			int componentIndent = indentLevel + 1;
++    			localDp.setLevel(componentIndent);
++    			GLView barItem = getComponent(i);
++    			localDp.finish();
++    			localDp.indent();
++    			barItem.dumpClass(localDp);
++    			String itemId = deriveBarItemId(barItem);
++    			if(itemId != null) {
++    				localDp.writeEntry("mID", deriveBarItemId(barItem));
++    			}
++    		}
++    		localDp.setLevel(indentLevel);
++    	} catch (Exception x) {
++    		localDp.writeEntry("exception", x.toString());    		
++    	}
++    }
++    
++    private String deriveBarItemId(GLView item) {
++    	if(item instanceof OtherSettingsIndicator) return "id/otherSettings";
++    	if(item instanceof GpsIndicator) return "id/" + CameraSettings.KEY_RECORD_LOCATION;
++    	if(item instanceof BasicIndicator) return ((BasicIndicator) item).getDumpId();
++    	return null;
++    }
+ 
+     public void setSelectedIndex(int index) {
+         if (index == mSelectedIndex) return;
+diff --git a/src/com/android/camera/ui/PopupWindow.java b/src/com/android/camera/ui/PopupWindow.java
+index c2bf533..757c0a8 100644
+--- a/src/com/android/camera/ui/PopupWindow.java
++++ b/src/com/android/camera/ui/PopupWindow.java
+@@ -13,10 +13,26 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.camera.ui;
+ 
+ import android.graphics.Rect;
++import android.view.ViewDebug;
+ import android.view.View.MeasureSpec;
+ import android.view.animation.AlphaAnimation;
+ import android.view.animation.Animation;
+@@ -63,6 +79,15 @@ class PopupWindow extends GLView {
+         mAnchor = anchor;
+         mAnchorOffset = offset;
+     }
++    
++    protected void dumpClass(ViewDebug.DumpControl localDp) {
++    	super.dumpClass(localDp);
++    	localDp.writeEntry("mAnchorPosition", mAnchorPosition);
++    	localDp.finish();
++    	localDp.setLevel(localDp.getLevel() + 1);
++     	localDp.indent();
++    	mRotatePane.dumpClass(localDp);
++   }
+ 
+     @Override
+     public void addComponent(GLView component) {
+diff --git a/src/com/android/camera/ui/RotatePane.java b/src/com/android/camera/ui/RotatePane.java
+index 9f9effa..e38f3cc 100644
+--- a/src/com/android/camera/ui/RotatePane.java
++++ b/src/com/android/camera/ui/RotatePane.java
+@@ -13,11 +13,27 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.camera.ui;
+ 
+ import android.graphics.Matrix;
+ import android.view.MotionEvent;
++import android.view.ViewDebug;
+ 
+ import javax.microedition.khronos.opengles.GL11;
+ 
+@@ -123,6 +139,26 @@ class RotatePane extends GLView {
+         if (view != null) super.addComponent(view);
+         requestLayout();
+     }
++    
++    protected void dumpClass(ViewDebug.DumpControl localDp) {
++    	super.dumpClass(localDp);
++    	
++    	String sOrientation;
++    	switch(mOrientation) {
++    	case UP:    sOrientation = "up";    break;
++    	case RIGHT: sOrientation = "right"; break;
++    	case DOWN:  sOrientation = "down";  break;
++    	case LEFT:  sOrientation = "left";  break;
++    	default: sOrientation = "error(" + mOrientation + ")";
++    	}
++    	localDp.writeEntry("mOrientation", sOrientation);
++    	
++    	localDp.finish();
++    	localDp.setLevel(localDp.getLevel() + 1);
++    	localDp.indent();
++    	// mChild is one of GLListView or LinearLayout(Zoom)
++    	mChild.dumpClass(localDp);
++    }
+ 
+     @Override
+     public void addComponent(GLView view) {
+diff --git a/src/com/android/camera/ui/StringTexture.java b/src/com/android/camera/ui/StringTexture.java
+index 94c3185..35bb529 100644
+--- a/src/com/android/camera/ui/StringTexture.java
++++ b/src/com/android/camera/ui/StringTexture.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.camera.ui;
+ 
+@@ -53,6 +68,10 @@ class StringTexture extends CanvasTexture {
+ 
+         return newInstance(text, paint);
+     }
++    
++    public String getText() {
++    	return mText;
++    }
+ 
+     @Override
+     protected void onDraw(Canvas canvas, Bitmap backing) {
+

@@ -1,1 +1,6 @@
 8/31/2011
+Sam Quiring
+Wind River
+
+The patches contained here are modify Android source [AOSP] to make the
+ViewServer/ViewDebug protocol faster and more reliable.

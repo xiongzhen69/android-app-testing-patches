@@ -1,0 +1,64 @@
+
+project packages/apps/Gallery/
+diff --git a/src/com/android/camera/GridViewSpecial.java b/src/com/android/camera/GridViewSpecial.java
+index 3c3caf1..02ea256 100644
+--- a/src/com/android/camera/GridViewSpecial.java
++++ b/src/com/android/camera/GridViewSpecial.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ package com.android.camera;
+ 
+ import com.android.gallery.R;
+@@ -37,6 +51,7 @@ import android.view.MotionEvent;
+ import android.view.View;
+ import android.view.ViewConfiguration;
+ import android.view.GestureDetector.SimpleOnGestureListener;
++import android.view.ViewDebug;
+ import android.widget.Scroller;
+ 
+ import com.android.camera.gallery.IImage;
+@@ -707,6 +722,25 @@ class GridViewSpecial extends View {
+         }
+         canvas.drawBitmap(mOutline[type], xPos, yTop, null);
+     }
++    
++    protected void dumpClass(ViewDebug.DumpParams dp) {
++        dp.writeEntryNoSuf("mAllImages_count", mAllImages.getCount());
++        dp.writeEntryNoSuf("mColumns", mColumns);
++        dp.writeEntryNoSuf("mCurrentSelection", mCurrentSelection);
++        if (mCurrentSelection != INDEX_NONE) {
++                Rect r = getRectForPosition(mCurrentSelection);
++                dp.writeEntryNoSuf("sel_left", r.left);
++                dp.writeEntryNoSuf("sel_right", r.right);
++                dp.writeEntryNoSuf("sel_top", r.top);
++                dp.writeEntryNoSuf("sel_bottom", r.bottom);
++                IImage image = mAllImages.getImageAt(mCurrentSelection);
++                if(image != null) {
++                        dp.writeEntryNoSuf("sel_image_title", image.getTitle());
++                        dp.writeEntryNoSuf("sel_image_dataPath", image.getDataPath());
++                }
++        }
++        super.dumpClass(dp);
++    }
+ }
+ 
+ class ImageBlockManager {
+

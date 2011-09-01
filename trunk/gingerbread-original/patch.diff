@@ -1,0 +1,1907 @@
+
+project frameworks/base/
+diff --git a/core/java/android/view/View.java b/core/java/android/view/View.java
+index 6590497..6a088dd 100644
+--- a/core/java/android/view/View.java
++++ b/core/java/android/view/View.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++* Copyright (C) 2011 Wind River Systems, Inc.
++*
++* Licensed under the Apache License, Version 2.0 (the "License");
++* you may not use this file except in compliance with the License.
++* You may obtain a copy of the License at
++*
++* http://www.apache.org/licenses/LICENSE-2.0
++*
++* Unless required by applicable law or agreed to in writing, software
++* distributed under the License is distributed on an "AS IS" BASIS,
++* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++* See the License for the specific language governing permissions and
++* limitations under the License.
++*/
+ 
+ package android.view;
+ 
+@@ -8791,7 +8806,131 @@ public class View implements Drawable.Callback, KeyEvent.Callback, Accessibility
+         }
+         return newSet;
+     }
++    
++    protected void dumpClass(ViewDebug.DumpParams dp)
++    {
++    	
++        dp.writeEntryNoSuf("getHeight()", getHeight());
++        dp.writeEntryNoSuf("getWidth()", getWidth());
++        dp.writeEntryNoSuf("getVisibility()", visibleMap(getVisibility()));
++        dp.writeEntryNoSuf("hasFocus()", hasFocus());
++        dp.writeEntryNoSuf("isEnabled()", isEnabled());
++        dp.writeEntryNoSuf("isFocusable()", isFocusable());
++        dp.writeEntryNoSuf("isFocused()", isFocused());
++        dp.writeEntryNoSuf("isSelected()", isSelected());
++        dp.writeResolvedId("mID", mID);
++        dp.writeEntryNoSuf("mMeasuredHeight", mMeasuredHeight);
++        dp.writeEntryNoSuf("mMeasuredWidth", mMeasuredWidth);
++        dp.writeEntryNoSuf("mLeft", mLeft);
++        dp.writeEntryNoSuf("mTop", mTop);
++        dp.writeEntryNoSuf("mScrollY", mScrollY);
++        
++    	if(dp.getBrief()) {
++    		return;
++    	}
++    	
++        dp.writeEntryNoSuf("getBaseline()", getBaseline());
++        dp.deepDump(getLayoutParams(), "layout_");
++        dp.writeEntryNoSuf("getTag()", getTag());
++        dp.writeEntryNoSuf("isClickable()", isClickable());
++        dp.writeEntryNoSuf("isDrawingCacheEnabled()", isDrawingCacheEnabled());
++
++        dp.writeEntryNoSuf("isFocusableInTouchMode()", isFocusableInTouchMode());
++        dp.writeEntryNoSuf("isHapticFeedbackEnabled()", isHapticFeedbackEnabled());
++        dp.writeEntryNoSuf("isInTouchMode()", isInTouchMode());
++        dp.writeEntryNoSuf("isOpaque()", isOpaque());
++        dp.writeEntryNoSuf("isSoundEffectsEnabled()", isSoundEffectsEnabled());
++
++        dp.writeEntryNoSuf("mBottom", mBottom);
++
++        dp.writeEntryNoSuf("mMinHeight", mMinHeight);
++        dp.writeEntryNoSuf("mMinWidth", mMinWidth);
++        dp.writeEntryNoSuf("mPaddingBottom", mPaddingBottom);
++        dp.writeEntryNoSuf("mPaddingRight", mPaddingRight);
++        dp.writeEntryNoSuf("mPaddingTop", mPaddingTop);
++
++        flagMapping(dp);
++        dp.writeEntryNoSuf("mRight", mRight);
++        dp.writeEntryNoSuf("mScrollX", mScrollX);
++        dp.writeEntryNoSuf("mUserPaddingBottom", mUserPaddingBottom);
++        dp.writeEntryNoSuf("mUserPaddingRight", mUserPaddingRight);
++        dp.writeEntryNoSuf("mViewFlags", mViewFlags);
++
++        dp.writeEntryNoSuf("willNotCacheDrawing()", willNotCacheDrawing());
++        dp.writeEntryNoSuf("willNotDraw()", willNotDraw());
++
++        String sMCurScrollY;
++        ViewParent viewParent = mParent;
++        while (viewParent instanceof View) {
++            final View view = (View)viewParent;
++            viewParent = view.mParent;
++        }
++        if (viewParent instanceof ViewRoot) {
++            // *cough*
++            final ViewRoot vr = (ViewRoot)viewParent;
++            sMCurScrollY = String.valueOf(vr.mCurScrollY);
++        } else {
++            sMCurScrollY = viewParent.getClass().getName();
++        }
++        dp.writeEntryNoSuf("vr_mCurScrollY", sMCurScrollY);
++
++    }
+ 
++    String visibleMap(int visibility) {
++        if(visibility == View.VISIBLE) return "VISIBLE";
++        if(visibility == View.INVISIBLE) return "INVISIBLE";
++        if(visibility == View.GONE) return "GONE";
++        return "unknownVisibility(" + visibility + ")";
++    }
++
++    class FlagMapping {
++        int mask;
++        int equals;
++        String name;
++        String value;
++        boolean outputIf;
++
++        public void init(int mask, int equals, String name, String value, boolean outputIf) {
++            this.mask = mask;
++            this.equals = equals;
++            this.name = name;
++            this.value = value;
++            this.outputIf = outputIf;
++        }
++        public FlagMapping(int mask, int equals, String name, String value, boolean outputIf) {
++            init(mask, equals, name, value, outputIf);
++        }
++        public FlagMapping(int mask, int equals, String name, String value) {
++            init(mask, equals, name, value, true);
++        }
++    }
++
++    FlagMapping privateFlagsDecoder[] = new FlagMapping[]{
++        new FlagMapping(FORCE_LAYOUT, FORCE_LAYOUT, "mPrivateFlags_FORCE_LAYOUT", "0x1000"),
++        new FlagMapping(LAYOUT_REQUIRED, LAYOUT_REQUIRED, "mPrivateFlags_LAYOUT_REQUIRED", "0x2000"),
++        new FlagMapping(DRAWING_CACHE_VALID, DRAWING_CACHE_VALID,
++                "mPrivateFlags_DRAWING_CACHE_INVALID", "0x0", false),
++        new FlagMapping(DRAWN, DRAWN, "mPrivateFlags_DRAWN", "0x20", true),
++        new FlagMapping(DRAWN, DRAWN, "mPrivateFlags_NOT_DRAWN", "0x0", false),
++        new FlagMapping(DIRTY_MASK, DIRTY_OPAQUE, "mPrivateFlags_DIRTY_OPAQUE", "0x400000"),
++        new FlagMapping(DIRTY_MASK, DIRTY, "mPrivateFlags_DIRTY", "0x200000")
++    };
++
++    void flagMapping(ViewDebug.DumpParams dp) {
++        for(int i = 0; i < privateFlagsDecoder.length; i++) {
++            FlagMapping flagDecoder = privateFlagsDecoder[i];
++            int maskedResult = mPrivateFlags & flagDecoder.mask;
++            if(maskedResult == flagDecoder.equals) {
++                if(flagDecoder.outputIf) {
++                    dp.writeEntryNoSuf(flagDecoder.name, flagDecoder.value);
++                }
++            } else {
++                if(!flagDecoder.outputIf) {
++                    dp.writeEntryNoSuf(flagDecoder.name, flagDecoder.value);
++                }
++            }
++        }
++    }
+     /**
+      * Inflate a view from an XML resource.  This convenience method wraps the {@link
+      * LayoutInflater} class, which provides a full range of options for view inflation.
+diff --git a/core/java/android/view/ViewDebug.java b/core/java/android/view/ViewDebug.java
+index 7b6991f..7090723 100644
+--- a/core/java/android/view/ViewDebug.java
++++ b/core/java/android/view/ViewDebug.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ 
+ package android.view;
+ 
+@@ -27,6 +42,9 @@ import android.graphics.Rect;
+ import android.os.Environment;
+ import android.os.Debug;
+ import android.os.RemoteException;
++import android.os.ServiceManager;
++import android.text.IClipboard;
++import android.text.TextUtils;
+ 
+ import java.io.ByteArrayOutputStream;
+ import java.io.File;
+@@ -157,6 +175,9 @@ public class ViewDebug {
+ 	        Debug.setFieldsOn(ViewDebug.class, true);
+ 	    }
+     }
++    
++    private static boolean lessSlowDump = true;
++    private static boolean quickDump = true;
+ 
+     /**
+      * This annotation can be used to mark fields and methods to be dumped by
+@@ -353,6 +374,7 @@ public class ViewDebug {
+ 
+     private static final String REMOTE_COMMAND_CAPTURE = "CAPTURE";
+     private static final String REMOTE_COMMAND_DUMP = "DUMP";
++    private static final String REMOTE_COMMAND_DUMP_QUICK = "DUMPQ";
+     private static final String REMOTE_COMMAND_INVALIDATE = "INVALIDATE";
+     private static final String REMOTE_COMMAND_REQUEST_LAYOUT = "REQUEST_LAYOUT";
+     private static final String REMOTE_PROFILE = "PROFILE";
+@@ -706,8 +728,10 @@ public class ViewDebug {
+             try {
+                 out.close();
+             } catch (IOException e) {
+-                Log.e("View", "Could not dump view hierarchy");
++                Log.e("ViewDebug", "Could not dump view hierarchy2");
+             }
++        } else {
++            Log.w("ViewDebug", "view not instance of ViewGroup: " + view.getClass().getName());
+         }
+ 
+         sHierarhcyRoot = null;
+@@ -860,7 +884,13 @@ public class ViewDebug {
+         view = view.getRootView();
+ 
+         if (REMOTE_COMMAND_DUMP.equalsIgnoreCase(command)) {
+-            dump(view, clientStream);
++        	if(lessSlowDump) {
++        		dumpQuick(view, clientStream, false);
++        	} else {
++        		dump(view, clientStream);
++        	}
++        } else if (REMOTE_COMMAND_DUMP_QUICK.equalsIgnoreCase(command)) {
++      		dumpQuick(view, clientStream, true);
+         } else if (REMOTE_COMMAND_CAPTURE_LAYERS.equalsIgnoreCase(command)) {
+             captureLayers(view, new DataOutputStream(clientStream));
+         } else {
+@@ -1203,11 +1233,41 @@ public class ViewDebug {
+                 ViewGroup group = (ViewGroup) view;
+                 dumpViewHierarchyWithProperties(group.getContext(), group, out, 0);
+             }
++        } catch (Exception e) {
++            android.util.Log.w("View", "Problem dumping the view:", e);
++        } finally {
+             out.write("DONE.");
+             out.newLine();
++            if (out != null) {
++                out.close();
++            }
++        }
++    }
++
++    // dumpQuick() is being written to replace dump().  dumpQuick is not
++    // going to go through the old slow execution path.  So multiple routines
++    // will be rewritten:
++    //    - dumpViewHierarcyWithProperties
++    //    - dumpViewWithProperties
++    //    - dumpViewProperties(3 params)
++    //    - dumpViewProperties(4 params)
++    //
++    private static void dumpQuick(View root, OutputStream clientStream, boolean brief) throws IOException {
++        BufferedWriter out = null;
++        try {
++            out = new BufferedWriter(new OutputStreamWriter(clientStream, "utf-8"), 32 * 1024);
++            View view = root.getRootView();
++            if (view instanceof ViewGroup) {
++                ViewGroup group = (ViewGroup) view;
++                DumpParams dumpInfo = new DumpParams(group.getContext(), out, brief);
++                dumpInfo.dumpViewHierarchyWithProperties(group, 0);
++                //x dumpViewHierarchyWithProperties(group.getContext(), group, out, 0);
++            }
+         } catch (Exception e) {
+-            android.util.Log.w("View", "Problem dumping the view:", e);
++            android.util.Log.w("View", "[q]Problem dumping the view:", e);
+         } finally {
++            out.write("DONE.");
++            out.newLine();
+             if (out != null) {
+                 out.close();
+             }
+@@ -1238,6 +1298,30 @@ public class ViewDebug {
+     private static boolean isRequestedView(View view, String className, int hashCode) {
+         return view.getClass().getName().equals(className) && view.hashCode() == hashCode;
+     }
++    
++    private static void dumpClipboard(BufferedWriter out) {
++        try {
++            IClipboard clip = IClipboard.Stub.asInterface(ServiceManager.getService("clipboard"));
++            if (clip != null) {
++                CharSequence t = clip.getClipboardText();
++                int last = t.length();
++                if(last <= 0) return;
++                final int MAX_CHARS_TO_REPORT = 500;
++                if(last >= MAX_CHARS_TO_REPORT) last = MAX_CHARS_TO_REPORT - 1;
++                char[] temp = new char[MAX_CHARS_TO_REPORT];
++                TextUtils.getChars(t, 0, last, temp, 0);
++                int len = 0;
++                for(; len<temp.length;len++) {if(temp[len] == '\0') break;}
++                if(len == 0) return;
++                writeEntry(out, "", "clipboardText", "()", String.copyValueOf(temp,0,len));
++            }
++        } catch  (IOException e) {
++            Log.e("ViewDebug", "dumpClipboard failed", e);
++        } catch (Exception e) {
++            Log.e("ViewDebug", "e dumpClipboard failed", e);
++        }
++    }
++
+ 
+     private static void dumpViewHierarchyWithProperties(Context context, ViewGroup group,
+             BufferedWriter out, int level) {
+@@ -1248,13 +1332,55 @@ public class ViewDebug {
+         final int count = group.getChildCount();
+         for (int i = 0; i < count; i++) {
+             final View view = group.getChildAt(i);
++            if(view == null) {
++            	logInconsistency(i, count, group);
++            }
+             if (view instanceof ViewGroup) {
+                 dumpViewHierarchyWithProperties(context, (ViewGroup) view, out, level + 1);
+             } else {
+-                dumpViewWithProperties(context, view, out, level + 1);
++                if(!dumpViewWithProperties(context, view, out, level + 1)) {
++                    Log.w("ViewDebug", "  - child " + (i + 1) + "/" + count + " of " + group.getClass().getName());
++                }
+             }
+         }
+     }
++    
++    // If 'About phone -> Status' window is visible and 'Up time' is
++    // scrolled into view, for a brief period every second, when the
++    // time on 'Up time' changes, the children of the Status window will
++    // be inconsistent.  See test above prior to call of logInconsistency().
++    //
++    private static View logInconsistency(int i, int count, ViewGroup group) {
++        View view;
++        Log.w("ViewDebug", "child " + (i + 1) + "/" + count + " is null: " + theChildren(group));
++        try {
++                Thread.sleep(100);
++        } catch (Exception e) {
++                ;
++        }
++        view = group.getChildAt(i);
++        // I want to know which child had the problem!
++        Log.w("ViewDebug", "child 100 ms later: " + ((view == null) ? "null" :
++                        view.getClass().getName() + '@' + Integer.toHexString(view.hashCode())) +
++                        ": " + theChildren(group));
++        return view;
++    }
++    
++    static String theChildren(ViewGroup group)
++    {
++        final int count = group.getChildCount();
++        String list = "[" + count +"] ";
++        for (int i = 0; i < count; i++) {
++            View view = group.getChildAt(i);
++            if(view != null) {
++                list += Integer.toHexString(view.hashCode()) + " ";
++            } else {
++                list += "null ";
++            }
++        }
++        return list;
++    }
++
+ 
+     private static boolean dumpViewWithProperties(Context context, View view,
+             BufferedWriter out, int level) {
+@@ -1267,11 +1393,22 @@ public class ViewDebug {
+             out.write('@');
+             out.write(Integer.toHexString(view.hashCode()));
+             out.write(' ');
+-            dumpViewProperties(context, view, out);
++            dumpViewLocation(view, out);
++            // do not dump any properties *after* calling
++            // dumpViewProperties.
++            dumpViewProperties(context, view, out, "");
++            if(level == 0) {
++            	dumpOrientation(view, out);
++            	dumpClipboard(out);
++            }
+             out.newLine();
+         } catch (IOException e) {
+             Log.w("View", "Error while dumping hierarchy tree");
+             return false;
++        } catch (Exception e2) {
++            // e.g., when HV views 'about phone' > 'Status' (changing 'Up time')
++            Log.w("ViewDebug", "Exception (" + e2.getMessage() +") while dumping hierarchy tree");
++            return false;
+         }
+         return true;
+     }
+@@ -1349,12 +1486,6 @@ public class ViewDebug {
+     }
+ 
+     private static void dumpViewProperties(Context context, Object view,
+-            BufferedWriter out) throws IOException {
+-
+-        dumpViewProperties(context, view, out, "");
+-    }
+-
+-    private static void dumpViewProperties(Context context, Object view,
+             BufferedWriter out, String prefix) throws IOException {
+ 
+         Class<?> klass = view.getClass();
+@@ -1365,6 +1496,324 @@ public class ViewDebug {
+             klass = klass.getSuperclass();
+         } while (klass != Object.class);
+     }
++    
++    private static class MethodHolder {
++        Method dumpClass = null;
++    }
++    private static HashMap<Class<?>, MethodHolder> previouslyDumped;
++
++
++    /**
++     * DumpParams holds the parameters and main dump routines used in the
++     * dump process for dumping one object.  Encapsulating this info allows
++     * the many calls on writeEntryNoSuf() to be more to the point and
++     * easy to understand.
++     */
++    public static class DumpParams {
++        private BufferedWriter out;
++        private String prefix;
++        private Context context;
++        private int viewLevel;
++        private int level;
++        private boolean brief;
++
++        // copy constructor
++        public DumpParams(DumpParams dp) {
++        	out = dp.out;
++        	prefix = dp.prefix;
++        	context = dp.context;
++        	level = dp.level;
++        	brief = dp.brief;
++        }
++
++        public void writeEntryNoSuf(String name, Object value) {
++            try {
++                if(prefix != null) {
++                    out.write(prefix);
++                }
++                out.write(name);
++                out.write('=');
++                writeValue(value);
++                out.write(' ');
++            } catch (IOException ioe) {
++                Log.e("ViewDebug", "IOException wENS(" + name + "): " + ioe.getMessage(), ioe);
++                // if I/O is screwed up, let's bail.
++                throw new RuntimeException("IO Exception in writeEntryNoSuf");
++            }
++        }
++        
++        public void writeResolvedId(String idName, int idValue) {
++            if(context != null) {
++                writeEntryNoSuf(idName, resolveId(idValue));
++            }
++        }
++        
++        public Object resolveId(int idValue) {
++        	return ViewDebug.resolveId(context, idValue);
++        }
++
++        /**
++         * write a View-like name into the dump, Classname@hash, for example:
++         * com.android.internal.policy.impl.PhoneWindow$DecorView@450197d0
++         * @param viewLikeObj - the object whose name is to be written.
++         */
++        public void writeViewLikeName(Object viewLikeObj) {
++        	try {
++	            out.write(viewLikeObj.getClass().getName());
++	            out.write('@');
++	            out.write(Integer.toHexString(viewLikeObj.hashCode()));
++	            out.write(' ');
++        	} catch (IOException iox) {
++        		Log.e("ViewDebug", "trying to writeViewLikeName: " + viewLikeObj.getClass().getName(), iox);
++        	}
++        	
++        }
++
++        public void setContext(Context context) {
++        	this.context = context;
++        }
++        public void setOut(BufferedWriter out) {
++        	this.out = out;
++        }
++        public void setPrefix(String prefix) {
++        	this.prefix = prefix;
++        }
++        public void setLevel(int level) {
++        	this.level = level;
++        }
++        public void setBrief(boolean brief) {
++        	this.brief = brief;
++        }
++
++        public BufferedWriter getOut() {
++        	return out;
++        }
++        public int getLevel() {
++        	return level;
++        }
++        public boolean getBrief() {
++        	return brief;
++        }
++                
++        public void indent() {
++            for(int i = 0; i < level; i++) {
++            	try {
++            		out.write(' ');
++            	} catch (IOException ioe) {
++            		Log.e("ViewDebug", "IOException [indent]: " + ioe.getMessage(), ioe);
++            		throw new RuntimeException("IO Exception in DumpParams.indent()");
++            	}
++            }        	
++        }
++
++        /**
++         * Used to terminate a line when you know for certain that
++         * a new line of data is about to be output.  Only used
++         * when the View structure doesn't take care of this
++         * automatically, e.g., AllApps3D, Gallery's RenderView.
++         */
++        public void finish() {
++        	try {
++        		out.newLine();
++        	} catch (IOException ioe) {
++        		Log.e("ViewDebug", "Unexpected exception (finish()): " + ioe.getMessage(), ioe);
++        		throw new RuntimeException("IO Exception writing a newline (finish())");
++        	}
++        }
++
++        private static char null4[] = {'4', ',', 'n', 'u', 'l', 'l'};
++        
++        // Every value is dumped as N,string, where:
++        //    N = number of chars in string
++        //    string = value
++        // examples:
++        //    4,true            -- boolean true
++        //    11,Hello World    -- String "Hello world"
++        //    3,-15             -- int -15
++        //    4,null            -- duh
++        //
++        private void writeValue(Object value) throws IOException {
++            if (value != null) {
++                String output = value.toString().replace("\n", "\\n");
++                writeInt(output.length());
++                out.write(',');
++                efficientWrite(output);
++            } else {
++                out.write(null4);
++            }
++        }
++
++        static private char buf64[] = new char[64];
++
++        // "efficient" because it does not allocate a new array
++        // for every string it writes.
++        private void efficientWrite(String text) throws IOException {
++            final int len = text.length();
++            if(len <= 64) {
++                text.getChars(0, len, buf64, 0);
++                out.write(buf64, 0, len);
++            } else {
++                out.write(text);
++            }
++        }
++
++        private char dig[] = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
++
++        private void writeInt(int iVal) throws IOException {
++            if(iVal >= 0 && iVal < 100) {
++                if(iVal > 9) {
++                    out.write(dig[iVal / 10]);
++                }
++                out.write(dig[iVal % 10]);
++            } else {
++                efficientWrite(String.valueOf(iVal));
++            }
++        }
++
++        /**
++         * Dumps the fields of a new object where the field names
++         * are prefixed.  When the new object is finished, dumping
++         * is resumed at the old object. 
++         * @param value - the new object to dump
++         * @param prefix - a string to be prefixed in front of each
++         *          field in the new object.
++         */
++        public void deepDump(Object value, String prefix) {
++            try {
++                BufferedWriter save_out = this.out;
++                String save_prefix = this.prefix;
++                Context save_context = this.context;
++
++                dumpViewProperties(value, prefix);
++
++                this.out = save_out;
++                this.prefix = save_prefix;
++                this.context = save_context;
++            } catch (IOException ioe) {
++                Log.w("ViewDebug", "deepDump(" + prefix + ")", ioe);
++                throw new RuntimeException("IOException in deepDump");
++            }
++        }
++        
++        public void dumpLocation(View view)
++        {
++        	dumpViewLocation(view, out);
++        }
++        
++        public DumpParams(Context context,  BufferedWriter out, boolean brief) {
++        	this.context = context;
++        	this.out = out;
++        	this.brief = brief;
++        }
++        
++        /*
++         * @hide
++         */
++        public void dumpViewHierarchyWithProperties(ViewGroup viewGroup, int level) {
++            if (!dumpViewWithProperties(viewGroup, level)) {
++                return;
++            }
++
++            final int count = viewGroup.getChildCount();
++            for (int i = 0; i < count; i++) {
++                View view = viewGroup.getChildAt(i);
++                if(view == null) {
++                	logInconsistency(i, count, viewGroup);
++                }
++                if (view instanceof ViewGroup) {
++                    dumpViewHierarchyWithProperties((ViewGroup)view, level + 1);
++                } else {
++                    if(!dumpViewWithProperties(view, level + 1)) {
++                        Log.w("ViewDebug", "  - [q] child " + (i + 1) + "/" + count +
++                        		" of " + viewGroup.getClass().getName());
++                    }
++                }
++            }
++        }
++        
++        private boolean dumpViewWithProperties(View view, int level) {
++            try {
++                for (int i = 0; i < level; i++) {
++                    out.write(' ');
++                }
++                viewLevel = level;
++                out.write(view.getClass().getName());
++                out.write('@');
++                out.write(Integer.toHexString(view.hashCode()));
++                out.write(' ');
++                dumpViewLocation(view, out);
++                // do not dump any properties *after* calling
++                // dumpViewProperties.
++                dumpViewProperties(view, null);
++                if(level == 0) {
++                	dumpOrientation(view, out);
++                	dumpClipboard(out);
++                }
++                out.newLine();
++            } catch (IOException e) {
++                Log.w("View", "[q]Error while dumping hierarchy tree", e);
++                return false;
++            } catch (Exception e2) {
++                // e.g., when HV views 'about phone' > 'Status' (changing 'Up time')
++                Log.w("ViewDebug", "[q]Exception (" + e2.getMessage() +") while dumping hierarchy tree", e2);
++                return false;
++            }
++            return true;
++        }
++      
++        private void dumpViewProperties(Object view, String prefix) throws IOException {
++            Class<?> klass = view.getClass();
++            do {
++            	// exportClass calls the view's dumpClass method, if there is one.
++            	// dumpClass is responsible for calling its super's dumpClass.
++                if(exportClass(view, klass, prefix)) return;
++                klass = klass.getSuperclass();
++            } while (klass != Object.class);
++        }
++        
++        /**
++         * Call on the class's dumpClass method to export the Fields and Methods.
++         * The introspection to find if an object has a dumpClass() method allocates
++         * a fair amount of memory, so only do it one time, saving the result in
++         * the previouslyDumped table.
++         */
++        private boolean exportClass(Object view, Class<?> klass, String prefix)	throws IOException  {
++            if(previouslyDumped == null) {
++                previouslyDumped = new HashMap<Class<?>, MethodHolder>();
++            }
++            MethodHolder method = previouslyDumped.get(klass);
++            if(method == null) {
++                try {
++                    method = new MethodHolder();
++                    method.dumpClass = klass.getDeclaredMethod("dumpClass", DumpParams.class);
++                    if(method.dumpClass == null) return false;
++                    method.dumpClass.setAccessible(true);  // allow us to invoke this method
++                    previouslyDumped.put(klass, method);
++                } catch (NoSuchMethodException nsme) {
++                    previouslyDumped.put(klass, new MethodHolder());
++                    return false;
++                } catch (SecurityException se) {
++                    Log.w("ViewDebug", "[q]" + klass.getName() + ": security exception trying to getDeclaredMethod(\"dumpClass\")");
++                    return false;
++                }
++            } else if(method.dumpClass == null) {
++                // we've looked up this klass.method before, it doesn't exist
++                return false;
++            }
++
++            try {
++            	this.prefix = prefix;
++            	this.level = viewLevel;
++                method.dumpClass.invoke(view, this);
++            } catch (Exception e) {
++                Log.w("ViewDebug", "[q]" + klass.getName() + "." + method.dumpClass.getName() + ": " +
++                        e.getClass().getName() + "(" + e.getMessage() + ")", e);
++                throw new RuntimeException("dumpClass() error");
++            }
++            return true;
++        }
++        
++    }
+ 
+     private static void exportMethods(Context context, Object view, BufferedWriter out,
+             Class<?> klass, String prefix) throws IOException {
+@@ -1439,6 +1888,30 @@ public class ViewDebug {
+         }
+     }
+ 
++    private static void dumpOrientation(View view, BufferedWriter out) {
++    	try {   	
++    		int orientation = view.getResources().getConfiguration().orientation;
++    		Log.d("ViewDebug", "orientation: " + orientation);
++    		writeEntry(out, "", "orientation", "", orientation);
++    	} catch (IOException iox) {
++    		Log.w("ViewDebug", iox.getMessage() + ": exception in dumpOrientation()");
++    	}
++    }
++    
++    private static void dumpViewLocation(View view, BufferedWriter out)
++    {
++        if((view != null) && view.mAttachInfo != null) {
++            int screenLocation[] = new int[2];
++            ((View)view).getLocationOnScreen(screenLocation);
++            try {
++                writeEntry(out, "", "screenX", "", Integer.toString(screenLocation[0]));
++                writeEntry(out, "", "screenY", "", Integer.toString(screenLocation[1]));
++            } catch (IOException ioe) {
++                Log.w("ViewDebug", ioe.getMessage() + ": exception in dumpViewLocation()");
++            }
++        }
++    }
++
+     private static void exportFields(Context context, Object view, BufferedWriter out,
+             Class<?> klass, String prefix) throws IOException {
+ 
+@@ -1593,8 +2066,11 @@ public class ViewDebug {
+             writeEntry(out, prefix, name, suffix, value);
+         }
+     }
+-
+-    static Object resolveId(Context context, int id) {
++    
++    /**
++     * @hide
++     */
++    public static Object resolveId(Context context, int id) {
+         Object fieldValue;
+         final Resources resources = context.getResources();
+         if (id >= 0) {
+@@ -1614,7 +2090,7 @@ public class ViewDebug {
+         if (value != null) {
+             String output = value.toString().replace("\n", "\\n");
+             out.write(String.valueOf(output.length()));
+-            out.write(",");
++            out.write(',');
+             out.write(output);
+         } else {
+             out.write("4,null");
+diff --git a/core/java/android/view/ViewGroup.java b/core/java/android/view/ViewGroup.java
+index b9864ba..ed2fdb7 100644
+--- a/core/java/android/view/ViewGroup.java
++++ b/core/java/android/view/ViewGroup.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ package android.view;
+ 
+ import com.android.internal.R;
+@@ -3522,6 +3536,27 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager
+             @ViewDebug.IntToString(from = WRAP_CONTENT, to = "WRAP_CONTENT")
+         })
+         public int height;
++        
++        protected void dumpClass(ViewDebug.DumpParams dp) {
++            dp.writeEntryNoSuf("height", matchOrWrap(height));
++            dp.writeEntryNoSuf("width", matchOrWrap(width));
++        }
++        
++        /**
++         * @hide
++         */
++        protected Object matchOrWrap(int param)
++        {
++            if(param == ViewGroup.LayoutParams.MATCH_PARENT) {
++                return "MATCH_PARENT";
++            }
++            if(param == ViewGroup.LayoutParams.WRAP_CONTENT) {
++                return "WRAP_CONTENT";
++            }
++            return param;
++        }
++
++
+ 
+         /**
+          * Used to animate layouts.
+@@ -3748,5 +3783,56 @@ public abstract class ViewGroup extends View implements ViewParent, ViewManager
+             rightMargin = right;
+             bottomMargin = bottom;
+         }
++        
++        protected void dumpClass(ViewDebug.DumpParams dp) {
++        	if( ! dp.getBrief()) {
++	            dp.writeEntryNoSuf("bottomMargin", matchOrWrap(bottomMargin));
++	            dp.writeEntryNoSuf("leftMargin", matchOrWrap(leftMargin));
++	            dp.writeEntryNoSuf("rightMargin", matchOrWrap(rightMargin));
++	            dp.writeEntryNoSuf("topMargin", matchOrWrap(topMargin));
++        	}
++            super.dumpClass(dp);
++        }
+     }
++    
++    protected void dumpClass(ViewDebug.DumpParams dp) {
++    	if( ! dp.getBrief()) {
++	        dp.writeEntryNoSuf("getDescendantFocusability()", focusDescendents(getDescendantFocusability()));
++	        dp.writeEntryNoSuf("getPersistentDrawingCache()", drawingCache(getPersistentDrawingCache()));
++	        dp.writeEntryNoSuf("isAlwaysDrawnWithCacheEnabled()", isAlwaysDrawnWithCacheEnabled());
++	        dp.writeEntryNoSuf("isAnimationCacheEnabled()", isAnimationCacheEnabled());
++	        dp.writeEntryNoSuf("isChildrenDrawnWithCacheEnabled()", isChildrenDrawnWithCacheEnabled());
++    	}
++        super.dumpClass(dp);
++    }
++    /**
++     * @hide
++     */
++    protected String focusDescendents(int focusability) {
++        if(focusability == ViewGroup.FOCUS_BEFORE_DESCENDANTS) return c_focus_before_descendants;
++        if(focusability == ViewGroup.FOCUS_AFTER_DESCENDANTS) return c_focus_after_descendants;
++        if(focusability == ViewGroup.FOCUS_BLOCK_DESCENDANTS) return c_focus_block_descendants;
++        return "focusDescendents_CASE_ERROR";
++    }
++    /**
++     * @hide
++     */
++    protected String drawingCache(int persistantDrawingCache) {
++        if(persistantDrawingCache == ViewGroup.PERSISTENT_NO_CACHE) return c_none;
++        if(persistantDrawingCache == ViewGroup.PERSISTENT_ANIMATION_CACHE) return c_animation;
++        if(persistantDrawingCache == ViewGroup.PERSISTENT_SCROLLING_CACHE) return c_scrolling;
++        if(persistantDrawingCache == ViewGroup.PERSISTENT_ALL_CACHES) return c_all;
++        return "drawingCache_CASE_ERROR";
++    }
++
++    // ViewGroup.getDescendantFocusability()
++    static final String c_focus_before_descendants  = "FOCUS_BEFORE_DESCENDANTS";
++    static final String c_focus_after_descendants  = "FOCUS_AFTER_DESCENDANTS";
++    static final String c_focus_block_descendants  = "FOCUS_BLOCK_DESCENDANTS";
++
++    // ViewGroup.getPersistentDrawingCache()
++    static final String c_none  = "NONE";
++    static final String c_animation  = "ANIMATION";
++    static final String c_scrolling  = "SCROLLING";
++    static final String c_all  = "ALL";    
+ }
+diff --git a/core/java/android/webkit/WebView.java b/core/java/android/webkit/WebView.java
+index bcd0332..dcf6e68 100644
+--- a/core/java/android/webkit/WebView.java
++++ b/core/java/android/webkit/WebView.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ package android.webkit;
+ 
+ import com.android.internal.R;
+@@ -64,6 +78,7 @@ import android.view.SoundEffectConstants;
+ import android.view.VelocityTracker;
+ import android.view.View;
+ import android.view.ViewConfiguration;
++import android.view.ViewDebug;
+ import android.view.ViewGroup;
+ import android.view.ViewTreeObserver;
+ import android.view.animation.AlphaAnimation;
+@@ -7945,4 +7960,75 @@ public class WebView extends AbsoluteLayout
+     // return NO_LEFTEDGE means failure.
+     private static final int NO_LEFTEDGE = -1;
+     private native int      nativeGetBlockLeftEdge(int x, int y, float scale);
++    
++    protected void dumpClass(ViewDebug.DumpParams dp) {
++        dp.writeEntryNoSuf("browserFocusArea()", browserFocusArea());
++        dp.writeEntryNoSuf("browserFocusOn()", browserFocusOn());
++        dp.writeEntryNoSuf("browserFocusText()", browserFocusText());
++        dp.writeEntryNoSuf("browserFocusName()", browserFocusName());
++        dp.writeEntryNoSuf("browserFocusType()", browserFocusType());
++        dp.writeEntryNoSuf("browserCursor()", browserCursor());
++        dp.writeEntryNoSuf("browserCursorArea()", browserCursorArea());
++        dp.writeEntryNoSuf("browserCursorOn()", browserCursorOn());
++        dp.writeEntryNoSuf("browserCursorText()", browserCursorText());
++        dp.writeEntryNoSuf("browserCursorRing()", browserCursorRing());
++        dp.writeEntryNoSuf("browserCursorType()", browserCursorType());
++        super.dumpClass(dp);
++    }
++
++    private String browserFocusArea() {
++        Rect nativeBnds = nativeFocusCandidateNodeBounds();
++        Rect viewBnds = contentToViewRect( nativeBnds );
++        return String.format("l=%d,r=%d,t=%d,b=%d", viewBnds.left, viewBnds.right, viewBnds.top, viewBnds.bottom);
++    }
++
++    private boolean browserFocusOn() {
++        return nativeHasFocusNode();
++    }
++
++    private String browserFocusText() {
++        return nativeFocusCandidateText();
++    }
++
++    private String browserFocusName() {
++        return nativeFocusCandidateName();
++    }
++
++    private String browserFocusType() {
++        if( nativeFocusCandidateIsTextInput() ) return "textInput";
++        return "other";
++    }
++
++    private String browserCursor() {
++        Point position = nativeCursorPosition();
++        int x = contentToViewX( position.x );
++        int y = contentToViewY( position.y );
++        return String.format("x=%d,y=%d", x, y);
++    }
++
++    private String browserCursorArea() {
++        Rect nativeBnds = nativeCursorNodeBounds();
++        Rect viewBnds = contentToViewRect( nativeBnds );
++        return String.format("l=%d,r=%d,t=%d,b=%d", viewBnds.left, viewBnds.right, viewBnds.top, viewBnds.bottom);
++    }
++
++    private boolean browserCursorOn() {
++        return nativeHasCursorNode();
++    }
++
++    private String browserCursorText() {
++        return nativeCursorText();
++    }
++
++    private String browserCursorRing() {
++        Rect nativeBnds = nativeGetCursorRingBounds();
++        Rect viewBnds = contentToViewRect( nativeBnds );
++        return String.format("l=%d,r=%d,t=%d,b=%d", viewBnds.left, viewBnds.right, viewBnds.top, viewBnds.bottom);
++    }
++
++    private String browserCursorType() {
++        if( nativeCursorIsTextInput() ) return "textInput";
++        if( nativeCursorIsAnchor() ) return "Anchor";
++        return "other";
++    }
+ }
+diff --git a/core/java/android/widget/AbsListView.java b/core/java/android/widget/AbsListView.java
+index 9a38acc..dc0001c 100644
+--- a/core/java/android/widget/AbsListView.java
++++ b/core/java/android/widget/AbsListView.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ package android.widget;
+ 
+ import com.android.internal.R;
+@@ -4647,4 +4661,14 @@ public abstract class AbsListView extends AdapterView<ListAdapter> implements Te
+             }
+         }
+     }
++    
++    protected void dumpClass(ViewDebug.DumpParams dp) {
++        dp.writeEntryNoSuf("getSelectedView()", getSelectedView());
++        dp.writeEntryNoSuf("isFastScrollEnabled()", isFastScrollEnabled());
++        dp.writeEntryNoSuf("isScrollingCacheEnabled()", isScrollingCacheEnabled());
++        dp.writeEntryNoSuf("isSmoothScrollbarEnabled()", isSmoothScrollbarEnabled());
++        dp.writeEntryNoSuf("isStackFromBottom()", isStackFromBottom());
++        dp.writeEntryNoSuf("isTextFilterEnabled()", isTextFilterEnabled());
++        super.dumpClass(dp);
++     }
+ }
+diff --git a/core/java/android/widget/AdapterView.java b/core/java/android/widget/AdapterView.java
+index 8fcc2e8..efdfa5a 100644
+--- a/core/java/android/widget/AdapterView.java
++++ b/core/java/android/widget/AdapterView.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ 
+ package android.widget;
+ 
+@@ -1138,4 +1153,12 @@ public abstract class AdapterView<T extends Adapter> extends ViewGroup {
+             }
+         }
+     }
++
++    protected void dumpClass(ViewDebug.DumpParams dp) {
++        dp.writeEntryNoSuf("mFirstPosition", mFirstPosition);
++        dp.writeEntryNoSuf("mItemCount", mItemCount);
++        dp.writeEntryNoSuf("mNextSelectedPosition", mNextSelectedPosition);
++        dp.writeEntryNoSuf("mSelectedPosition", mSelectedPosition);
++        super.dumpClass(dp);
++    }
+ }
+diff --git a/core/java/android/widget/CheckedTextView.java b/core/java/android/widget/CheckedTextView.java
+index bf63607..b08f0fc 100644
+--- a/core/java/android/widget/CheckedTextView.java
++++ b/core/java/android/widget/CheckedTextView.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ 
+ package android.widget;
+ 
+@@ -35,6 +50,7 @@ import android.view.accessibility.AccessibilityEvent;
+  * something other than {@link android.widget.ListView#CHOICE_MODE_NONE CHOICE_MODE_NONE}.
+  *
+  */
++
+ public class CheckedTextView extends TextView implements Checkable {
+     private boolean mChecked;
+     private int mCheckMarkResource;
+@@ -206,4 +222,9 @@ public class CheckedTextView extends TextView implements Checkable {
+         }
+         return populated;
+     }
++
++    protected void dumpClass(ViewDebug.DumpParams dp) {
++        dp.writeEntryNoSuf("isChecked()", isChecked());
++        super.dumpClass(dp);
++    }
+ }
+diff --git a/core/java/android/widget/CompoundButton.java b/core/java/android/widget/CompoundButton.java
+index bf02ad3..6c100bc 100644
+--- a/core/java/android/widget/CompoundButton.java
++++ b/core/java/android/widget/CompoundButton.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ package android.widget;
+ 
+ import com.android.internal.R;
+@@ -342,4 +356,9 @@ public abstract class CompoundButton extends Button implements Checkable {
+         setChecked(ss.checked);
+         requestLayout();
+     }
++    
++    protected void dumpClass(ViewDebug.DumpParams dp) {
++        dp.writeEntryNoSuf("isChecked()", isChecked());
++        super.dumpClass(dp);
++    }
+ }
+diff --git a/core/java/android/widget/FrameLayout.java b/core/java/android/widget/FrameLayout.java
+index e445180..14830c7 100644
+--- a/core/java/android/widget/FrameLayout.java
++++ b/core/java/android/widget/FrameLayout.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ 
+ package android.widget;
+ 
+@@ -499,5 +514,19 @@ public class FrameLayout extends ViewGroup {
+             super(source);
+         }
+     }
++
++    protected void dumpClass(ViewDebug.DumpParams dp) {
++    	if( ! dp.getBrief()) {
++	        dp.writeEntryNoSuf("mForeground", mForeground);
++	        dp.writeEntryNoSuf("mForegroundGravity", mForegroundGravity);
++	        dp.writeEntryNoSuf("mForegroundInPadding", mForegroundInPadding);
++	        dp.writeEntryNoSuf("mForegroundPaddingBottom", mForegroundPaddingBottom);
++	        dp.writeEntryNoSuf("mForegroundPaddingLeft", mForegroundPaddingLeft);
++	        dp.writeEntryNoSuf("mForegroundPaddingRight", mForegroundPaddingRight);
++	        dp.writeEntryNoSuf("mForegroundPaddingTop", mForegroundPaddingTop);
++	        dp.writeEntryNoSuf("mMeasureAllChildren", mMeasureAllChildren);
++    	}
++        super.dumpClass(dp);
++    }
+ }
+ 
+diff --git a/core/java/android/widget/LinearLayout.java b/core/java/android/widget/LinearLayout.java
+index faf082d..57a653f 100644
+--- a/core/java/android/widget/LinearLayout.java
++++ b/core/java/android/widget/LinearLayout.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ 
+ package android.widget;
+ 
+@@ -1449,5 +1464,30 @@ public class LinearLayout extends ViewGroup {
+             return output + "LinearLayout.LayoutParams={width=" + sizeToString(width) +
+                     ", height=" + sizeToString(height) + " weight=" + weight +  "}";
+         }
++        
++        protected void dumpClass(ViewDebug.DumpParams dp) {
++            dp.writeEntryNoSuf("layout_weight", weight);
++            dp.writeEntryNoSuf("layout_gravity", gravityMap(gravity));
++            super.dumpClass(dp);
++    }
++
++    /**
++     * @hide
++     */
++    protected String gravityMap(int gravity) {
++        if(gravity == -1) return "NONE";
++        if(gravity == Gravity.NO_GRAVITY) return "NONE";
++        if(gravity == Gravity.TOP) return "TOP";
++        if(gravity == Gravity.BOTTOM) return "BOTTOM";
++        if(gravity == Gravity.LEFT) return "LEFT";
++        if(gravity == Gravity.RIGHT) return "RIGHT";
++        if(gravity == Gravity.CENTER_VERTICAL) return "CENTER_VERTICAL";
++        if(gravity == Gravity.FILL_VERTICAL) return "FILL_VERTICAL";
++        if(gravity == Gravity.CENTER_HORIZONTAL) return "CENTER_HORIZONTAL";
++        if(gravity == Gravity.FILL_HORIZONTAL) return "FILL_HORIZONTAL";
++        if(gravity == Gravity.CENTER) return "CENTER";
++        if(gravity == Gravity.FILL) return "FILL";
++        return "UNKNOWN_VALUE(" + String.valueOf(gravity) +")";
++    }
+     }
+ }
+diff --git a/core/java/android/widget/ListView.java b/core/java/android/widget/ListView.java
+index e1a1894..41e54e6 100644
+--- a/core/java/android/widget/ListView.java
++++ b/core/java/android/widget/ListView.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ 
+ package android.widget;
+ 
+@@ -3772,4 +3787,9 @@ public class ListView extends AbsListView {
+             mCheckedIdStates = ss.checkIdState;
+         }
+     }
++    
++    protected void dumpClass(ViewDebug.DumpParams dp) {
++        dp.writeEntryNoSuf("recycleOnMeasure()", recycleOnMeasure());
++        super.dumpClass(dp);
++    }
+ }
+diff --git a/core/java/android/widget/ProgressBar.java b/core/java/android/widget/ProgressBar.java
+index ec7d927..a8827b2 100644
+--- a/core/java/android/widget/ProgressBar.java
++++ b/core/java/android/widget/ProgressBar.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ package android.widget;
+ 
+ import android.content.Context;
+@@ -949,6 +963,13 @@ public class ProgressBar extends View {
+         setProgress(ss.progress);
+         setSecondaryProgress(ss.secondaryProgress);
+     }
++    
++    protected void dumpClass(ViewDebug.DumpParams dp) {
++        dp.writeEntryNoSuf("getProgress()", getProgress());
++        dp.writeEntryNoSuf("getSecondaryProgress()", getSecondaryProgress());
++        dp.writeEntryNoSuf("getMax()", getMax());
++        super.dumpClass(dp);
++    }
+ 
+     @Override
+     protected void onAttachedToWindow() {
+diff --git a/core/java/android/widget/RelativeLayout.java b/core/java/android/widget/RelativeLayout.java
+index a47359f..b2a2ad6 100644
+--- a/core/java/android/widget/RelativeLayout.java
++++ b/core/java/android/widget/RelativeLayout.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ package android.widget;
+ 
+ import com.android.internal.R;
+@@ -1045,6 +1059,62 @@ public class RelativeLayout extends ViewGroup {
+          */
+         @ViewDebug.ExportedProperty(category = "layout")
+         public boolean alignWithParent;
++        
++        protected void dumpClass(ViewDebug.DumpParams dp) {
++        	if( ! dp.getBrief()) {
++        		dp.writeEntryNoSuf("alignWithParent", alignWithParent);
++        		exportmRules(dp);
++        	}
++            super.dumpClass(dp);
++        }
++        /**
++         * @hide
++         */
++        protected void exportmRules(ViewDebug.DumpParams dp) {
++            final int valuesCount = mRules.length;
++
++            for(int index = 0; index < valuesCount; index++) {
++                String fieldName;
++
++                if(index < mRulesIndex.length) {
++                    fieldName = mRulesIndex[index];
++                } else {
++                    fieldName = Integer.toString(index);
++                }
++
++                int intValue = mRules[index];
++                Object value;
++                if(intValue == -1) {
++                    value = "true"; 
++                } else if(intValue == 0) { 
++                    value = "false";
++                } else {
++                	value = dp.resolveId(intValue);
++                }
++
++                dp.writeEntryNoSuf(fieldName, value); 
++            }
++        }
++        
++        static final String mRulesIndex[] = new String[16];
++        static {
++            mRulesIndex[RelativeLayout.ABOVE]               = "mRules_above";
++            mRulesIndex[RelativeLayout.ALIGN_BASELINE]      = "mRules_alignBaseline";
++            mRulesIndex[RelativeLayout.ALIGN_BOTTOM]        = "mRules_alignBottom";
++            mRulesIndex[RelativeLayout.ALIGN_LEFT]          = "mRules_alignLeft";
++            mRulesIndex[RelativeLayout.ALIGN_PARENT_BOTTOM] = "mRules_alignParentBottom";
++            mRulesIndex[RelativeLayout.ALIGN_PARENT_LEFT]   = "mRules_alignParentLeft";
++            mRulesIndex[RelativeLayout.ALIGN_PARENT_RIGHT]  = "mRules_alignParentRight";
++            mRulesIndex[RelativeLayout.ALIGN_PARENT_TOP]    = "mRules_alignParentTop";
++            mRulesIndex[RelativeLayout.ALIGN_RIGHT]         = "mRules_alignRight";
++            mRulesIndex[RelativeLayout.ALIGN_TOP]           = "mRules_alignTop";
++            mRulesIndex[RelativeLayout.BELOW]               = "mRules_below";
++            mRulesIndex[RelativeLayout.CENTER_HORIZONTAL]   = "mRules_centerHorizontal";
++            mRulesIndex[RelativeLayout.CENTER_IN_PARENT]    = "mRules_center";
++            mRulesIndex[RelativeLayout.CENTER_VERTICAL]     = "mRules_centerVertical";
++            mRulesIndex[RelativeLayout.LEFT_OF]             = "mRules_leftOf";
++            mRulesIndex[RelativeLayout.RIGHT_OF]            = "mRules_rightOf";
++        }
+ 
+         public LayoutParams(Context c, AttributeSet attrs) {
+             super(c, attrs);
+diff --git a/core/java/android/widget/TableRow.java b/core/java/android/widget/TableRow.java
+index b612004..efbac68 100644
+--- a/core/java/android/widget/TableRow.java
++++ b/core/java/android/widget/TableRow.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ package android.widget;
+ 
+ import android.content.Context;
+@@ -500,6 +514,12 @@ public class TableRow extends LinearLayout {
+                 height = WRAP_CONTENT;
+             }
+         }
++        
++        protected void dumpClass(ViewDebug.DumpParams dp) {
++            dp.writeEntryNoSuf("layout_column", column);
++            dp.writeEntryNoSuf("layout_span", span);
++            super.dumpClass(dp);
++        }
+     }
+ 
+     // special transparent hierarchy change listener
+diff --git a/core/java/android/widget/TextView.java b/core/java/android/widget/TextView.java
+index 41c9736..03207e4 100644
+--- a/core/java/android/widget/TextView.java
++++ b/core/java/android/widget/TextView.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ 
+ package android.widget;
+ 
+@@ -8354,6 +8369,16 @@ public class TextView extends View implements ViewTreeObserver.OnPreDrawListener
+         return mInBatchEditControllers;
+     }
+ 
++    protected void dumpClass(ViewDebug.DumpParams dp) {
++    	if( ! dp.getBrief()) {
++    		dp.writeEntryNoSuf("getEllipsize()", getEllipsize());
++    	}
++        dp.writeEntryNoSuf("mText", mText);
++        dp.writeEntryNoSuf("getSelectionStart()", getSelectionStart());
++        dp.writeEntryNoSuf("getSelectionEnd()", getSelectionEnd());
++        super.dumpClass(dp);
++    }
++
+     @ViewDebug.ExportedProperty
+     private CharSequence            mText;
+     private CharSequence            mTransformed;
+diff --git a/services/java/com/android/server/ViewServer.java b/services/java/com/android/server/ViewServer.java
+index 7b5d18a..2f941ca 100644
+--- a/services/java/com/android/server/ViewServer.java
++++ b/services/java/com/android/server/ViewServer.java
+@@ -13,9 +13,25 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ 
+ package com.android.server;
+ 
++import android.os.ParcelFileDescriptor;
+ import android.util.Slog;
+ 
+ import java.net.ServerSocket;
+@@ -190,7 +206,42 @@ class ViewServer implements Runnable {
+             }
+         }
+     }
++    
++    private boolean windowCommandWithDone(Socket client, String command, String parameters)
++    {
++        boolean result;
++        long cmdStartMillis = System.currentTimeMillis();
++
++        result = mWindowManager.viewServerWindowCommand(client, command, parameters);
++
++        long cmdDuration = System.currentTimeMillis() - cmdStartMillis;
++        if(client.getChannel() != null && client.getChannel().isOpen()) {
++	        try {
++        		// Usually this code does nothing.
++                ParcelFileDescriptor out = ParcelFileDescriptor.fromSocket(client);
++                OutputStream clientStream = new ParcelFileDescriptor.AutoCloseOutputStream(out);
++                BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(clientStream), 64);
++
++                bw.write("DONE.");
++                bw.newLine();
++                bw.write("workaround. ");
++                if(result) {
++                        bw.write('t');
++                } else {
++                        bw.write('f');
++                }
++                bw.newLine();
++                bw.flush();
++                bw.close();
++	        } catch (Exception ex) {
++	            Slog.e(LOG_TAG, "kludge output stream", ex);
++	        }
++        }
++        Slog.d(LOG_TAG, command + "-done " + Long.toString(cmdDuration));
+ 
++        return result;
++    }
++    
+     private static boolean writeValue(Socket client, String value) {
+         boolean result;
+         BufferedWriter out = null;
+@@ -253,12 +304,14 @@ class ViewServer implements Runnable {
+                 } else if (COMMAND_WINDOW_MANAGER_LIST.equalsIgnoreCase(command)) {
+                     result = mWindowManager.viewServerListWindows(mClient);
+                 } else if (COMMAND_WINDOW_MANAGER_GET_FOCUS.equalsIgnoreCase(command)) {
++                	Slog.d(LOG_TAG, "GET_FOCUS. localPort: " + mClient.getLocalPort() + "  targetPort: " + mClient.getPort());
+                     result = mWindowManager.viewServerGetFocusedWindow(mClient);
+                 } else if(COMMAND_WINDOW_MANAGER_AUTOLIST.equalsIgnoreCase(command)) {
++                	Slog.d(LOG_TAG, "AUTOLIST. localPort: " + mClient.getLocalPort() + "  targetPort: " + mClient.getPort());
+                     result = windowManagerAutolistLoop();
+                 } else {
+-                    result = mWindowManager.viewServerWindowCommand(mClient,
+-                            command, parameters);
++                    Slog.d(LOG_TAG, request + " -- localPort: " + mClient.getLocalPort() + ", targetPort: " + mClient.getPort());
++                    result = windowCommandWithDone(mClient, command, parameters);
+                 }
+ 
+                 if (!result) {
+diff --git a/services/java/com/android/server/WindowManagerService.java b/services/java/com/android/server/WindowManagerService.java
+index 1b2ddcc..4995b4d 100644
+--- a/services/java/com/android/server/WindowManagerService.java
++++ b/services/java/com/android/server/WindowManagerService.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ package com.android.server;
+ 
+ import static android.view.WindowManager.LayoutParams.FIRST_APPLICATION_WINDOW;
+@@ -4837,6 +4851,7 @@ public class WindowManagerService extends IWindowManager.Stub
+ 
+             final WindowManagerService.WindowState window = findWindow(hashCode);
+             if (window == null) {
++            	Slog.w("WindowManagerService", "window for " + hashCode + " (" + code + ") is null");            	
+                 return false;
+             }
+ 
+
+project packages/apps/Gallery/
+diff --git a/src/com/android/camera/GridViewSpecial.java b/src/com/android/camera/GridViewSpecial.java
+index 3c3caf1..02ea256 100644
+--- a/src/com/android/camera/GridViewSpecial.java
++++ b/src/com/android/camera/GridViewSpecial.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ package com.android.camera;
+ 
+ import com.android.gallery.R;
+@@ -37,6 +51,7 @@ import android.view.MotionEvent;
+ import android.view.View;
+ import android.view.ViewConfiguration;
+ import android.view.GestureDetector.SimpleOnGestureListener;
++import android.view.ViewDebug;
+ import android.widget.Scroller;
+ 
+ import com.android.camera.gallery.IImage;
+@@ -707,6 +722,25 @@ class GridViewSpecial extends View {
+         }
+         canvas.drawBitmap(mOutline[type], xPos, yTop, null);
+     }
++    
++    protected void dumpClass(ViewDebug.DumpParams dp) {
++        dp.writeEntryNoSuf("mAllImages_count", mAllImages.getCount());
++        dp.writeEntryNoSuf("mColumns", mColumns);
++        dp.writeEntryNoSuf("mCurrentSelection", mCurrentSelection);
++        if (mCurrentSelection != INDEX_NONE) {
++                Rect r = getRectForPosition(mCurrentSelection);
++                dp.writeEntryNoSuf("sel_left", r.left);
++                dp.writeEntryNoSuf("sel_right", r.right);
++                dp.writeEntryNoSuf("sel_top", r.top);
++                dp.writeEntryNoSuf("sel_bottom", r.bottom);
++                IImage image = mAllImages.getImageAt(mCurrentSelection);
++                if(image != null) {
++                        dp.writeEntryNoSuf("sel_image_title", image.getTitle());
++                        dp.writeEntryNoSuf("sel_image_dataPath", image.getDataPath());
++                }
++        }
++        super.dumpClass(dp);
++    }
+ }
+ 
+ class ImageBlockManager {
+
+project packages/apps/Launcher2/
+diff --git a/src/com/android/launcher2/AllApps3D.java b/src/com/android/launcher2/AllApps3D.java
+index 308ad28..1a6e552 100644
+--- a/src/com/android/launcher2/AllApps3D.java
++++ b/src/com/android/launcher2/AllApps3D.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ package com.android.launcher2;
+ 
+ import android.content.ComponentName;
+@@ -46,8 +60,10 @@ import android.view.SurfaceHolder;
+ import android.view.VelocityTracker;
+ import android.view.View;
+ import android.view.ViewConfiguration;
++import android.view.ViewDebug;
+ import android.view.accessibility.AccessibilityEvent;
+ 
++import java.io.BufferedWriter;
+ import java.util.ArrayList;
+ import java.util.Arrays;
+ import java.util.Collections;
+@@ -546,6 +562,109 @@ public class AllApps3D extends RSSurfaceView
+             x += columnWidth;
+         }
+     }
++    
++    protected void dumpClass(ViewDebug.DumpParams dp) {
++    	/*
++    	if(sRollo != null) {
++    		dp.writeEntryNoSuf("mWidth", sRollo.mWidth);
++    		dp.writeEntryNoSuf("mHeight", sRollo.mHeight);
++    		int cellHeight = 145;
++    		if(sRollo.mWidth >= sRollo.mHeight) {
++    			// landscape
++    			cellHeight -= 12;
++    		}
++    		dp.writeEntryNoSuf("cellHeight", cellHeight);
++    		dp.writeEntryNoSuf("cellWidth", cellWidth);
++    	} else {
++    		dp.writeEntryNoSuf("sRollo", null);
++    	}
++    	*/
++        super.dumpClass(dp);
++        // Kludge.  Put out a newline then start the children.
++        int iconRange[] = new int[2];
++        visibleLaunchIcons(iconRange);
++        
++        final int firstIcon = iconRange[0];
++        if(firstIcon == -1) return;  // erro rmessage already logcat'd
++        final int lastIcon = iconRange[1];
++        
++        ViewDebug.DumpParams localDp = new ViewDebug.DumpParams(dp);
++        localDp.setLevel(localDp.getLevel() + 1);
++        
++        float pos = sRollo != null ? sRollo.mScrollPos : 0;
++
++        final int baseRow = firstIcon/mColumnsPerPage;
++        for(int i = firstIcon; i <= lastIcon; i++) {
++        	int row = i/mColumnsPerPage;
++        	int y = mTouchYBorders[row - baseRow];
++            y += (pos - ((int)pos)) * (mTouchYBorders[1] - mTouchYBorders[0]);
++            int col = i - (row * mColumnsPerPage);
++            int x = mTouchXBorders[col];
++            dp.finish();
++        	dumpLaunchIcon(mAllAppsList.get(i), x, y, row, col, localDp);
++        	if(++col >= mColumnsPerPage) {
++        		y += (mTouchYBorders[1] - mTouchYBorders[0]);
++        	}
++        }
++    }
++    
++    private void dumpLaunchIcon(ApplicationInfo launcher, int x, int y, int row, int col, ViewDebug.DumpParams dp) {
++    	final BufferedWriter out = dp.getOut();
++    	try {
++    		// See also ViewDebug.dumpViewWithProperties()
++    		dp.indent();
++    		out.write(ApplicationInfo.class.getName());
++    		out.write('@');
++    		out.write(Integer.toHexString(launcher.hashCode()));
++    		out.write(' ');
++
++    		// dump icon properties
++    		dp.writeEntryNoSuf("x", x);
++    		dp.writeEntryNoSuf("y", y);
++    		dp.writeEntryNoSuf("getWidth()", 120);
++    		dp.writeEntryNoSuf("getHeight()", 145);
++    		dp.writeEntryNoSuf("row", row);
++    		dp.writeEntryNoSuf("col", col);
++    		dp.writeEntryNoSuf("getVisibility()", "VISIBLE");
++    		dp.writeEntryNoSuf("mText", launcher.title);
++            int[] viewPos = new int[2];
++            getLocationOnScreen(viewPos);
++    		dp.writeEntryNoSuf("screenX", x + viewPos[0]);
++    		dp.writeEntryNoSuf("screenY", y + viewPos[1]);
++    	} catch (Exception ex) {
++    		Log.w(TAG,  "[dumpLaunchIcon] exception " + ex.getMessage() + " dumping Launch icon", ex);
++    	}
++    }
++
++    private void visibleLaunchIcons(int allAppsIndexes[]) {
++        float pos = sRollo != null ? sRollo.mScrollPos : 0;
++        Log.i("sbq", "pos: " + pos);
++        //
++        // Adjust for scroll position if not zero.  I'm guessing
++        // that pos == n.f, where n is the number of rows scrolled
++        // off the top of the screen and f is the fraction of the
++        // topmost visible row that is scrolled off.  pos==2.333
++        // means that the top 2 rows are not visible and 1/3 of
++        // the 3rd row is also scrolled off the top.
++        //
++    	allAppsIndexes[0] = -1;
++    	allAppsIndexes[1] = -1;
++    	
++    	final int firstVisibleRow = (int)pos;
++    	final int firstIconIndex = firstVisibleRow * mColumnsPerPage;
++    	if(firstIconIndex >= mAllAppsList.size()) {
++    		Log.w(TAG, "all rows scrolled off?  pos: " + pos + " firstVisibleRow: " +
++    				firstVisibleRow  + "  mAllAppsList.size(): " + mAllAppsList.size());
++    		return;
++    	}
++    	allAppsIndexes[0] = firstIconIndex;
++    	
++    	int lastIconIndex = firstIconIndex + mRowsPerPage * mColumnsPerPage - 1;
++    	if(lastIconIndex >= mAllAppsList.size()) {
++    		lastIconIndex = mAllAppsList.size() - 1;
++    	}
++    	allAppsIndexes[1] = lastIconIndex;
++    }
+ 
+     int chooseTappedIcon(int x, int y) {
+         float pos = sRollo != null ? sRollo.mScrollPos : 0;
+diff --git a/src/com/android/launcher2/CellLayout.java b/src/com/android/launcher2/CellLayout.java
+index 9d39c2c..da115e9 100644
+--- a/src/com/android/launcher2/CellLayout.java
++++ b/src/com/android/launcher2/CellLayout.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++*/
+ 
+ package com.android.launcher2;
+ 
+@@ -888,6 +903,16 @@ out:            for (int i = x; i < x + spanX - 1 && x < xCount; i++) {
+         // Y coordinate of the view in the layout.
+         @ViewDebug.ExportedProperty
+         int y;
++        
++        protected void dumpClass(ViewDebug.DumpParams dp) {
++            dp.writeEntryNoSuf("cellHSpan", cellHSpan);
++            dp.writeEntryNoSuf("cellVSpan", cellVSpan);
++            dp.writeEntryNoSuf("cellX", cellX);
++            dp.writeEntryNoSuf("cellY", cellY);
++            dp.writeEntryNoSuf("x", x);
++            dp.writeEntryNoSuf("y", y);
++            super.dumpClass(dp);
++        }
+ 
+         boolean regenerateId;
+         

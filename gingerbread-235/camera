@@ -410,6 +410,38 @@ index 184016e..c530315 100644
          if (mMotionTarget != null) {
              if (action == MotionEvent.ACTION_DOWN) {
                  MotionEvent cancel = MotionEvent.obtain(event);
+diff --git a/src/com/android/camera/ui/GpsIndicator.java b/src/com/android/camera/ui/GpsIndicator.java
+index 78a80b8..dd3b448 100644
+--- a/src/com/android/camera/ui/GpsIndicator.java
++++ b/src/com/android/camera/ui/GpsIndicator.java
+@@ -17,6 +17,7 @@
+ package com.android.camera.ui;
+ 
+ import android.content.Context;
++import android.view.ViewDebug;
+ 
+ import com.android.camera.R;
+ import com.android.camera.IconListPreference;
+@@ -45,6 +46,19 @@ class GpsIndicator extends BasicIndicator {
+         return super.getIcon();
+     }
+ 
++    @Override
++    protected void dumpClass(ViewDebug.DumpControl localDp) {
++    	super.dumpClass(localDp);
++    	String iconName = "Off";
++    	ResourceTexture icon = getIcon();
++    	if(icon == mNoSignalIcon) {
++    		iconName = "On_butNoGPSSignal";
++    	} else if(mIndex == GPS_ON_INDEX) {
++    		iconName = "On";
++    	}
++    	localDp.writeEntry("gpsIcon", iconName);
++    }
++
+     public void setHasSignal(boolean hasSignal) {
+         if (mHasSignal == hasSignal) return;
+         mHasSignal = hasSignal;
 diff --git a/src/com/android/camera/ui/HeadUpDisplay.java b/src/com/android/camera/ui/HeadUpDisplay.java
 index 1b0415f..efc042e 100644
 --- a/src/com/android/camera/ui/HeadUpDisplay.java
@@ -475,7 +507,7 @@ index 1b0415f..efc042e 100644
          // We don't need to synchronize on GLRootView, since both the
          // <code>isActivated()</code> and rendering thread are read-only to
 diff --git a/src/com/android/camera/ui/IndicatorBar.java b/src/com/android/camera/ui/IndicatorBar.java
-index 95098b9..966e346 100644
+index 95098b9..7869c12 100644
 --- a/src/com/android/camera/ui/IndicatorBar.java
 +++ b/src/com/android/camera/ui/IndicatorBar.java
 @@ -13,14 +13,32 @@
@@ -511,7 +543,7 @@ index 95098b9..966e346 100644
  import android.view.animation.AlphaAnimation;
  
  class IndicatorBar extends GLView {
-@@ -139,6 +157,42 @@ class IndicatorBar extends GLView {
+@@ -139,6 +157,43 @@ class IndicatorBar extends GLView {
          }
          invalidate();
      }
@@ -531,6 +563,7 @@ index 95098b9..966e346 100644
 +    			int componentIndent = indentLevel + 1;
 +    			localDp.setLevel(componentIndent);
 +    			GLView barItem = getComponent(i);
++    			if(barItem == null) continue;
 +    			localDp.finish();
 +    			localDp.indent();
 +    			barItem.dumpClass(localDp);

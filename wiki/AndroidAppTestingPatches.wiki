@@ -21,4 +21,4 @@ A second benefit of this design, where a routine directly in the GUI object is c
 == Patch some OpenGL apps to expose their GUI ==
 We have patched the 3D launcher, gallery, and the camera OpenGL apps so they can utilize the DUMPQ command and be automatically tested.
 
-[[PatchDetails|Patch Details]]
+PatchDetails

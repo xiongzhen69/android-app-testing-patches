@@ -1,0 +1,8 @@
+== Patch Details ==
+The patches are divided into the categories described below.
+=== Frameworks ===
+These patches
+=== Launcher2 ===
+=== Gallery3d ===
+=== Gallery ===
+=== Camera ===

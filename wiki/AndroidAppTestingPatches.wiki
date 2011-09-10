@@ -7,7 +7,7 @@ The patches dramatically speed up the interface that [http://developer.android.c
 = Details =
 
 == Speed ups ==
-!HierarchyViewer communicates with the !ViewServer service on an Android device by sending a command over a socket.  The DUMP command retrieves the GUI Hierarchy, but it is very slow (see [http://groups.google.com/group/android-contrib/browse_thread/thread/de5b348a07bf13f9 this]).  These patches introduce a new command, DUMPQ, that is 20x - 40x faster.
+!HierarchyViewer communicates with the !ViewServer service on an Android device by sending commands over a socket.  The DUMP command retrieves the GUI Hierarchy, but it is very slow (see [http://groups.google.com/group/android-contrib/browse_thread/thread/de5b348a07bf13f9 this]).  These patches introduce a new command, DUMPQ, that is 20x - 40x faster.
 
 The Android GUI is built on the View and !ViewGroup objects (described [http://developer.android.com/guide/topics/ui/index.html here]).  Java annotation from the !ViewDebug class is used to declare which member fields and methods should be dumped for display by !HierarchyViewer.  !ViewDebug implements its DUMP command by walking the GUI tree of objects using introspection to discover which members are annotated and write their values to the socket.
 

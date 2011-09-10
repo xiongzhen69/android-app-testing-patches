@@ -16,7 +16,7 @@ The DUMPQ command implementation avoids introspection as much as possible.  The 
 A second speedup comes by only dumping the member fields critical for automated testing.  !ViewDebug's DUMP command is focused on supplying detailed information about GUI objects to !HierarchyViewer.  The DUMPQ command is focused just on testing.  
 
 == Let OpenGL apps expose their GUI for testing ==
-A second benefit of this design, where a routine directly in the GUI object is called to dump its own structure, it is naturally allows for GUIs implemented by OpenGL to expose their GUI structure.  All that is required is to supply a _dumpClass_ routine in the correct GUI objects.
+A second benefit of this design, where a routine directly in the GUI object is called to dump its own structure, is it naturally allows for GUIs implemented by OpenGL to expose their GUI structure for testing.  All that is required is to supply a _dumpClass_ routine in the correct GUI objects.
 
 == Patch some OpenGL apps to expose their GUI ==
 We have patched the 3D launcher, gallery, and the camera OpenGL apps so they can utilize the DUMPQ command and be automatically tested.

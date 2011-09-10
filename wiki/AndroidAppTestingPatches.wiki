@@ -6,4 +6,5 @@ The patches dramatically speed up the interface that [http://developer.android.c
 
 = Details =
 
-Detailed stuff
+== Speed Ups ==
+HierarchyViewer communicates with ViewServer by sending a command over a socket.  The DUMP command retrieves the GUI Hierarchy, but it is very slow (see [http://groups.google.com/group/android-contrib/browse_thread/thread/de5b348a07bf13f9 this]).  The 

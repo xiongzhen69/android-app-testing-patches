@@ -4,18 +4,18 @@ These purpose of these Android source patches is make automated use-case testing
 
 The patches dramatically speed up the interface that [http://developer.android.com/guide/developing/tools/hierarchy-viewer.html HierarchyViewer] uses to get a logical dump of a window's GUI structure.  The patches also introduce a mechanism so apps with OpenGL-based GUIs can expose their GUI structure for testing.  Finally, the patches expose the GUIs of some OpenGL Android apps: the 3D launcher, gallery, and the camera.
 
-= Details =
+= Overview =
 
 == Speed ups ==
 !HierarchyViewer communicates with the !ViewServer service on an Android device by sending commands over a socket.  The DUMP command retrieves the GUI Hierarchy, but it is very slow (see [http://groups.google.com/group/android-contrib/browse_thread/thread/de5b348a07bf13f9 this]).  These patches introduce a new command, DUMPQ, that is 20x - 40x faster.
 
-The Android GUI is built on the View and !ViewGroup objects (described [http://developer.android.com/guide/topics/ui/index.html here]).  Java annotation from the !ViewDebug class is used to declare which member fields and methods should be dumped for display by !HierarchyViewer.  !ViewDebug implements its DUMP command by walking the GUI tree of objects using introspection to discover which members are annotated and write their values to the socket.
+The Android GUI is built on the View and !ViewGroup objects (described [http://developer.android.com/guide/topics/ui/index.html here]).  Java annotation from the !ViewDebug class is used to declare which member fields and methods should be dumped for display by !HierarchyViewer.  !ViewDebug implements its DUMP command by walking the GUI tree of objects using introspection to discover which members are annotated and then obtaining and write their values to the socket.
 
-The DUMPQ command implementation avoids introspection as much as possible.  The implementation, which these patches enter into !ViewDebug, walks the GUI tree examining each object for a member method named *dumpClass* that is called to write the member values to the socket.  Introspection is avoided by putting the object's dumpClass routine in the object itself.  It is introspection that is the primary source of slowness in the implementation of DUMP.
+The new DUMPQ command implementation avoids introspection as much as possible.  The implementation, which these patches enter into !ViewDebug, walks the GUI tree examining each object for a member method named *dumpClass* that is called to write the member values to the socket.  Introspection is avoided by putting the object's dumpClass routine in the object itself.  It is introspection that is the primary source of slowness in the implementation of DUMP.
 
 A second speedup comes by only dumping the member fields critical for automated testing.  !ViewDebug's DUMP command is focused on supplying detailed information about GUI objects to !HierarchyViewer.  The DUMPQ command is focused just on testing.  
 
-== Let OpenGL apps expose their GUI for testing ==
+== OpenGL apps can expose their GUI for testing ==
 A second benefit of this design, where a routine directly in the GUI object is called to dump its own structure, is it naturally allows for GUIs implemented by OpenGL to expose their GUI structure for testing.  All that is required is to supply a _dumpClass_ routine in the correct GUI objects.
 
 == Patch some OpenGL apps to expose their GUI ==

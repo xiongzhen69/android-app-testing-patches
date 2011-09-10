@@ -7,7 +7,7 @@ The patches dramatically speed up the interface that [http://developer.android.c
 = Details =
 
 == Speed ups ==
-HierarchyViewer communicates with ViewServer by sending a command over a socket.  The DUMP command retrieves the GUI Hierarchy, but it is very slow (see [http://groups.google.com/group/android-contrib/browse_thread/thread/de5b348a07bf13f9 this]).  These patches introduce a new command, DUMPQ, that is 20x - 40x faster.
+!HierarchyViewer communicates with ViewServer by sending a command over a socket.  The DUMP command retrieves the GUI Hierarchy, but it is very slow (see [http://groups.google.com/group/android-contrib/browse_thread/thread/de5b348a07bf13f9 this]).  These patches introduce a new command, DUMPQ, that is 20x - 40x faster.
 
 == Let OpenGL apps expose their GUI for testing ==
 == Patch some OpenGL apps to expose their GUI ==

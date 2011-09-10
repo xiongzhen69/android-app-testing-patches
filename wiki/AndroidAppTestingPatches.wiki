@@ -2,7 +2,7 @@
 
 These purpose of these Android source patches is make use-case testing on Android devices feasible.
 
-The patches dramatically speed up the interface that HierarchyViewer uses to get a logical dump of a window's GUI structure.  The patches introduce a mechanism so apps with OpenGL-based GUIs can expose their GUI structure for testing.  Finally, the patches expose the GUIs of some OpenGL Android apps: the 3D launcher, gallery, and the camera.
+The patches dramatically speed up the interface that [http://developer.android.com/guide/developing/tools/hierarchy-viewer.html HierarchyViewer] uses to get a logical dump of a window's GUI structure.  The patches introduce a mechanism so apps with OpenGL-based GUIs can expose their GUI structure for testing.  Finally, the patches expose the GUIs of some OpenGL Android apps: the 3D launcher, gallery, and the camera.
 
 = Details =
 

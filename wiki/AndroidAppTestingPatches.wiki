@@ -30,7 +30,7 @@ PatchDetails
 == Exception trapping ==
 The patches try to trap every exception that can occur.  This way a DUMPQ command will always received at least a response with one line: DONE.  Otherwise automated testing had to wait for socket timeout to determine that an error had occurred.
 == Absolute window location ==
-Almost every window will have two new fields added, *screenX* and *screenY*.  These two fields contain the absolute coordinates of the window.
+Almost every window will have two new fields added, *screenX* and *screenY*.  These two fields contain the absolute position of the upper left corner of the window.  screenY can be negative, e.g., if the window is pushed up by the addition of the on-screen keyboard.
 == Browser testing support ==
 The Android browser does not expose any GUI info suitable for testing.  The patches add just enough to make it possible to test the browser.  The contents of the clipboard, if not null, are returned in the top-level window of the DUMPQ output as the field *clipboardText*.  Testing can use monkey to select text and copy it to the clipboard.
 == Logcat ==

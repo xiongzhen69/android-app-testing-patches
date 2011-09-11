@@ -11,7 +11,7 @@ The patches focus on the "examining the screen" aspect of use-case testing.  And
 
 The Android GUI is built on the View and !ViewGroup objects (described [http://developer.android.com/guide/topics/ui/index.html here]).  Java annotation from the !ViewDebug class is used to declare which member fields and methods should be dumped for display by !HierarchyViewer.  !ViewDebug implements the DUMP command by walking the GUI tree of objects using Java introspection to discover which members are annotated and then obtaining and writing their values to the socket.
 
-The new DUMPQ command implementation avoids introspection as much as possible.  The implementation, which these patches enter into !ViewDebug, walks the GUI tree examining each object for a member method named *dumpClass* that is called to write the member values to the socket.  Introspection is avoided by putting the object's dumpClass routine in the object itself.  It is introspection that is the primary source of slowness in the implementation of DUMP.
+The new DUMPQ command implementation dumps member fields and method values in exactly the same format as DUMP.  DUMPQ avoids introspection as much as possible.  The implementation, which these patches enter into !ViewDebug, walks the GUI tree examining each object for a member method named *dumpClass* that is called to write the member values to the socket.  Introspection is avoided by putting the object's dumpClass routine in the object itself.  It is introspection that is the primary source of slowness in the implementation of DUMP.
 
 A second speedup comes by only dumping the member fields critical for automated testing.  !ViewDebug's DUMP command is focused on supplying detailed information about GUI objects to !HierarchyViewer.  The DUMPQ command is focused just on testing.  
 
@@ -20,5 +20,7 @@ A second benefit of this design, where a routine directly in the GUI object is c
 
 == Patch some OpenGL apps to expose their GUI ==
 We have patched the 3D launcher, gallery, and the camera OpenGL apps so they can utilize the DUMPQ command and be automatically tested.
+
+These can be used as examples for how to expose OpenGL GUI data for testing.
 
 PatchDetails

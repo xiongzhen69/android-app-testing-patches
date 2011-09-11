@@ -32,6 +32,6 @@ The patches try to trap every exception that can occur.  This way a DUMPQ comman
 == Absolute window location ==
 Almost every window will have two new fields added, *screenX* and *screenY*.  These two fields contain the absolute coordinates of the window.
 == Browser testing support ==
-The Android browser does not expose any GUI info suitable for testing.  The patches add just enough to make it possible to test the browser.  The contents of the clipboard, if not null, are returned in the top-level window of the DUMPQ output as the field *clipboardText*.  Testing can use monkey to select text and copy it to the clipboard.  The test can examine this selected text.
+The Android browser does not expose any GUI info suitable for testing.  The patches add just enough to make it possible to test the browser.  The contents of the clipboard, if not null, are returned in the top-level window of the DUMPQ output as the field *clipboardText*.  Testing can use monkey to select text and copy it to the clipboard.
 == Logcat ==
 DUMPQ command processing is recorded in logcat.  When !ViewServer receives the DUMPQ command it logs it.  When !ViewDebug is finished and control passes back to !ViewServer, "DUMPQ-done" will be displayed and the time, in milliseconds, it took to process the command.

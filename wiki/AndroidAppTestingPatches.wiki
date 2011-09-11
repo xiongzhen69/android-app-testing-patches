@@ -5,6 +5,8 @@ The purpose of these Android source patches is make automated use-case testing o
 
 The patches focus on the "examining the screen" aspect of use-case testing.  Android has built into it an interface for the [http://developer.android.com/guide/developing/tools/hierarchy-viewer.html HierarchyViewer] tool that dumps the GUI structure of a window if that structure is "[http://developer.android.com/guide/topics/ui/index.html View-based]".  The patches dramatically speed up this interface.  The patches also introduce a mechanism so apps with OpenGL-based GUIs can expose their GUI structure for testing.  Finally, the patches use the mechanism to expose the GUIs of some OpenGL Android apps: the 3D launcher, gallery, and the camera.
 
+PatchDetails
+
 = Overview =
 
 == Speed ups ==

@@ -1,8 +1,9 @@
 == Patch Details ==
 The patches are divided into the categories described below.
 === Frameworks ===
-These patches
+These patches are to the view structure.  ViewServer and ViewDebug are modified to support the *dumpClass* mechanism described in the overview.  The View objects, View, ViewGroup, and many widgets have _dumpClass_ added so GUIs composed of these objects automatically expose GUI information in the DUMPQ command, just like the do for the DUMP command.
+
 === Launcher2 ===
-=== Gallery3d ===
-=== Gallery ===
-=== Camera ===
+The 3D launcher has an OpenGL based GUI.  We have added the necessary _dumpClass_ routines to allow automated testing to launch apps through the GUI.  This allows an automated testing system to launch the app being tested or test common use cases that involve multiple apps (e.g., 
+=== Gallery3d, Gallery, Camera ===
+These are 3 apps with OpenGL-based GUI structures.  The _dumpClass_ routines have been added to allow them to be automatically tested.

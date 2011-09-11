@@ -1,5 +1,5 @@
 == Patch Details ==
-The patches are divided into the categories described below.  Download the patches themselves (click the Source link above) and either look at them as-is or, apply the patches to Android and then examine the resulting files.
+The patches are divided into the categories described below.  The patches are not that complex.  The details here will make more sense if you are looking at the code.  Download the patches themselves (click the Source link above) and either look at them as-is or apply the patches to Android and then examine the resulting files using [http://source.android.com/source/using-eclipse.html Eclipse] (strongly recommended).
 == Notes on code execution ==
 The code introduced into Android by the patches does not execute during normal Android device operation.  It only executes if a DUMPQ command is received by !ViewServer.  Note that a retail device will not have !ViewServer enabled.  Android must be built as an engineering build (ro.secure=0, ro.debuggable=1, ro.kernel.android.checkjni=1) for !ViewServer to be enabled.
 === Frameworks ===

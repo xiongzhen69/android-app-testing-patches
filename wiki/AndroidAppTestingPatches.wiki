@@ -1,4 +1,4 @@
-# Introduction, Overview
+#summary Introduction and Overview
 = Introduction =
 
 The purpose of these Android source patches is make automated use-case testing on Android devices feasible.  Automated use-case tests interact with the device exactly like a human, by issuing click, enter text, scrolling, etc, commands supported by the device and examining the screen to see if the expected result appeared.

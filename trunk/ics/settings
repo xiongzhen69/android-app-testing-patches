@@ -1,0 +1,78 @@
+
+project packages/apps/Settings/
+diff --git a/src/com/android/settings/DevelopmentSettings.java b/src/com/android/settings/DevelopmentSettings.java
+index 2ffae19..aeb9b0d 100644
+--- a/src/com/android/settings/DevelopmentSettings.java
++++ b/src/com/android/settings/DevelopmentSettings.java
+@@ -43,6 +43,7 @@ import android.preference.PreferenceScreen;
+ import android.preference.Preference.OnPreferenceChangeListener;
+ import android.provider.Settings;
+ import android.text.TextUtils;
++import android.util.Log;
+ import android.view.IWindowManager;
+ 
+ /*
+@@ -411,10 +412,12 @@ public class DevelopmentSettings extends PreferenceFragment
+     @Override
+     public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
+ 
++        Log.i("DevelopmentSettings", "[sbq]click isMonkeyRunning(): " + Utils.isMonkeyRunning());
++        /*sbq
+         if (Utils.isMonkeyRunning()) {
+             return false;
+         }
+-
++        */
+         if (preference == mEnableAdb) {
+             if (mEnableAdb.isChecked()) {
+                 mOkClicked = false;
+diff --git a/src/com/android/settings/fuelgauge/BatteryHistoryChart.java b/src/com/android/settings/fuelgauge/BatteryHistoryChart.java
+index a229888..fc4398c 100644
+--- a/src/com/android/settings/fuelgauge/BatteryHistoryChart.java
++++ b/src/com/android/settings/fuelgauge/BatteryHistoryChart.java
+@@ -33,6 +33,7 @@ import android.text.TextPaint;
+ import android.util.AttributeSet;
+ import android.util.TypedValue;
+ import android.view.View;
++import android.view.ViewDebug;
+ 
+ public class BatteryHistoryChart extends View {
+     static final int CHART_DATA_X_MASK = 0x0000ffff;
+@@ -385,6 +386,37 @@ public class BatteryHistoryChart extends View {
+         mTotalDurationString = Utils.formatElapsedTime(getContext(), mHistEnd - mHistStart);
+     }
+ 
++    protected void dumpClass(ViewDebug.DumpControl pdc) {
++    	super.dumpClass(pdc);
++    	
++    	pdc.writeEntry("mNumHist", mNumHist);
++    	pdc.writeEntry("mHaveGPS", mHaveGps);
++    	pdc.writeEntry("mHaveWifi", mHaveWifi);
++    	pdc.writeEntry("mHavePhoneSignal", mHavePhoneSignal);
++    	pdc.writeEntry("mHistStart", mHistStart);
++    	pdc.writeEntry("mHistEnd", mHistEnd);
++    	pdc.writeEntry("mBatLow", mBatLow);
++    	pdc.writeEntry("mBatHigh", mBatHigh);
++
++        if (mStats.startIteratingHistoryLocked()) {
++        	int i = 0;
++        	final int N = mNumHist;
++
++            final HistoryItem rec = new HistoryItem();
++            while (mStats.getNextHistoryLocked(rec) && i < N) {
++                String recName = "rec" + (i+1);
++            	pdc.writeEntry(recName+"_cmd", rec.cmd);
++            	pdc.writeEntry(recName+"_states", rec.states);
++                if (rec.cmd == BatteryStats.HistoryItem.CMD_UPDATE) {
++                	pdc.writeEntry(recName+"_time", rec.time);
++                	pdc.writeEntry(recName+"_batteryLevel", rec.batteryLevel);
++                }
++                
++                i += 1;
++            }
++        }
++    }
++
+     @Override
+     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+         super.onMeasure(widthMeasureSpec, heightMeasureSpec);

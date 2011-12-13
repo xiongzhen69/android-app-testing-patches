@@ -2,5 +2,7 @@
 Sam Quiring
 Wind River
 
-The patches contained here are modify Android source [AOSP] to make the
-ViewServer/ViewDebug protocol faster and more reliable.
+The patches contained here modify Android source [AOSP] to make the
+ViewServer/ViewDebug protocol faster and more reliable.  For more
+information see the Wiki at:
+http://code.google.com/p/android-app-testing-patches/

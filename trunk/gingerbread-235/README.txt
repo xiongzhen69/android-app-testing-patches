@@ -2,7 +2,7 @@
 Wind River
 
 These patches have been tested with Gingerbread 2.3.5
-and 2.3.4.  The will very likely work for earlier versions
+and 2.3.4.  They will very likely work for earlier versions
 as well.
 
 If some of the patches do not apply, all is not lost --

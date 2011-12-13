@@ -1,0 +1,12 @@
+
+project device/samsung/maguro/
+diff --git a/board-info.txt b/board-info.txt
+index fb42b1f..e2892ee 100644
+--- a/board-info.txt
++++ b/board-info.txt
+@@ -1,4 +1,3 @@
+ require board=tuna
+ require version-bootloader=PRIMEKJ10
+-require version-baseband=I9250XXKK1
+ 
+

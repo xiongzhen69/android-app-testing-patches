@@ -1,10 +1,32 @@
 
 project packages/apps/Contacts/
 diff --git a/src/com/android/contacts/activities/PeopleActivity.java b/src/com/android/contacts/activities/PeopleActivity.java
-index 24992cc..d316b8d 100644
+index 24992cc..10c5f90 100644
 --- a/src/com/android/contacts/activities/PeopleActivity.java
 +++ b/src/com/android/contacts/activities/PeopleActivity.java
-@@ -1222,10 +1222,13 @@ public class PeopleActivity extends ContactsActivity
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.contacts.activities;
+ 
+@@ -1222,10 +1237,13 @@ public class PeopleActivity extends ContactsActivity
  
      @Override
      public boolean onCreateOptionsMenu(Menu menu) {
@@ -18,13 +40,13 @@ index 24992cc..d316b8d 100644
          super.onCreateOptionsMenu(menu);
  
          MenuInflater inflater = getMenuInflater();
-@@ -1278,10 +1281,14 @@ public class PeopleActivity extends ContactsActivity
+@@ -1278,10 +1296,14 @@ public class PeopleActivity extends ContactsActivity
  
      @Override
      public boolean onPrepareOptionsMenu(Menu menu) {
 +        mOptionsMenuContactsAvailable = true;
 +        /* sbq - if there are no contacts in DB, then no "add contact"
-+         * button is shown.  No way to add contacts - wtf?
++         * button is shown.  No way to add contacts.
          mOptionsMenuContactsAvailable = areContactsAvailable();
          if (!mOptionsMenuContactsAvailable) {
              return false;

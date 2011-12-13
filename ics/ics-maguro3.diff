@@ -1,4 +1,15 @@
 
+project device/samsung/maguro/
+diff --git a/board-info.txt b/board-info.txt
+index fb42b1f..e2892ee 100644
+--- a/board-info.txt
++++ b/board-info.txt
+@@ -1,4 +1,3 @@
+ require board=tuna
+ require version-bootloader=PRIMEKJ10
+-require version-baseband=I9250XXKK1
+ 
+
 project frameworks/base/
 diff --git a/api/current.txt b/api/current.txt
 index 92969f6..5b7a806 100644
@@ -1473,3 +1484,458 @@ index a199a7e..225aa64 100644
              }
  
 
+project packages/apps/Contacts/
+diff --git a/src/com/android/contacts/activities/PeopleActivity.java b/src/com/android/contacts/activities/PeopleActivity.java
+index 24992cc..10c5f90 100644
+--- a/src/com/android/contacts/activities/PeopleActivity.java
++++ b/src/com/android/contacts/activities/PeopleActivity.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.contacts.activities;
+ 
+@@ -1222,10 +1237,13 @@ public class PeopleActivity extends ContactsActivity
+ 
+     @Override
+     public boolean onCreateOptionsMenu(Menu menu) {
++        /* sbq - if there are no contacts in DB, then no "add contact"
++         * button is shown.  No way to add contacts.
+         if (!areContactsAvailable()) {
+             // If contacts aren't available, hide all menu items.
+             return false;
+         }
++        */
+         super.onCreateOptionsMenu(menu);
+ 
+         MenuInflater inflater = getMenuInflater();
+@@ -1278,10 +1296,14 @@ public class PeopleActivity extends ContactsActivity
+ 
+     @Override
+     public boolean onPrepareOptionsMenu(Menu menu) {
++        mOptionsMenuContactsAvailable = true;
++        /* sbq - if there are no contacts in DB, then no "add contact"
++         * button is shown.  No way to add contacts.
+         mOptionsMenuContactsAvailable = areContactsAvailable();
+         if (!mOptionsMenuContactsAvailable) {
+             return false;
+         }
++        */
+ 
+         final MenuItem addContactMenu = menu.findItem(R.id.menu_add_contact);
+         final MenuItem contactsFilterMenu = menu.findItem(R.id.menu_contacts_filter);
+
+project packages/apps/Launcher2/
+diff --git a/src/com/android/launcher2/AppsCustomizePagedView.java b/src/com/android/launcher2/AppsCustomizePagedView.java
+index 099c1ac..e619791 100644
+--- a/src/com/android/launcher2/AppsCustomizePagedView.java
++++ b/src/com/android/launcher2/AppsCustomizePagedView.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.launcher2;
+ 
+@@ -49,6 +64,7 @@ import android.view.LayoutInflater;
+ import android.view.MotionEvent;
+ import android.view.View;
+ import android.view.ViewGroup;
++import android.view.ViewDebug;
+ import android.view.animation.AccelerateInterpolator;
+ import android.widget.GridLayout;
+ import android.widget.ImageView;
+@@ -400,6 +416,27 @@ public class AppsCustomizePagedView extends PagedViewWithDraggableItems implemen
+         mLauncher.showFirstRunAllAppsCling(pos);
+ 
+     }
++    
++    protected void dumpClass(ViewDebug.DumpControl pdc) {
++        super.dumpClass(pdc);
++        pdc.writeEntry("mNumAppsPages", mNumAppsPages);
++        pdc.writeEntry("mNumWidgetPages", mNumWidgetPages);
++        /*
++        for(int page = 0; page < mNumAppsPages; page++) {
++            PagedViewCellLayout layout = (PagedViewCellLayout) getPageAt(page);
++            layout.setPageNo(page);
++        }
++        for(int page = 0; page < mNumWidgetPages; page++) {
++        	PagedViewGridLayout layout = (PagedViewGridLayout) getPageAt(page + mNumAppsPages);
++        	layout.setPageNo(page);
++        }
++        */
++        final int totalPages = mNumAppsPages + mNumWidgetPages;
++        for(int page = 0; page < totalPages; page++) {
++        	Page iPage = (Page) getPageAt(page);
++        	iPage.setPageNo(page);
++        }
++    }
+ 
+     @Override
+     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+diff --git a/src/com/android/launcher2/CellLayout.java b/src/com/android/launcher2/CellLayout.java
+index 54fdcc5..7c12271 100644
+--- a/src/com/android/launcher2/CellLayout.java
++++ b/src/com/android/launcher2/CellLayout.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.launcher2;
+ 
+ import android.animation.Animator;
+@@ -1840,6 +1854,17 @@ out:            for (int i = x; i < x + spanX - 1 && x < xCount; i++) {
+         @ViewDebug.ExportedProperty
+         int y;
+ 
++
++        protected void dumpClass(ViewDebug.DumpControl dp) {
++            dp.writeEntry("cellHSpan", cellHSpan);
++            dp.writeEntry("cellVSpan", cellVSpan);
++            dp.writeEntry("cellX", cellX);
++            dp.writeEntry("cellY", cellY);
++            dp.writeEntry("x", x);
++            dp.writeEntry("y", y);
++            super.dumpClass(dp);
++        }
++        
+         boolean dropped;
+ 
+         public LayoutParams(Context c, AttributeSet attrs) {
+diff --git a/src/com/android/launcher2/PagedView.java b/src/com/android/launcher2/PagedView.java
+index 7be19bf..cae66fc 100644
+--- a/src/com/android/launcher2/PagedView.java
++++ b/src/com/android/launcher2/PagedView.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.launcher2;
+ 
+@@ -36,6 +51,7 @@ import android.view.MotionEvent;
+ import android.view.VelocityTracker;
+ import android.view.View;
+ import android.view.ViewConfiguration;
++import android.view.ViewDebug;
+ import android.view.ViewGroup;
+ import android.view.ViewParent;
+ import android.view.accessibility.AccessibilityEvent;
+@@ -773,6 +789,12 @@ public abstract class PagedView extends ViewGroup {
+         }
+     }
+ 
++    protected void dumpClass(ViewDebug.DumpControl dpc) {
++        super.dumpClass(dpc);
++        dpc.writeEntry("mCurrentPage", mCurrentPage);
++        dpc.writeEntry("mNextPage", mNextPage);
++    }
++
+     /**
+      * If one of our descendant views decides that it could be focused now, only
+      * pass that along if it's on the current page.
+diff --git a/src/com/android/launcher2/PagedViewCellLayout.java b/src/com/android/launcher2/PagedViewCellLayout.java
+index 2ef7e29..38d5faa 100644
+--- a/src/com/android/launcher2/PagedViewCellLayout.java
++++ b/src/com/android/launcher2/PagedViewCellLayout.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.launcher2;
+ 
+ import android.content.Context;
+@@ -396,6 +410,18 @@ public class PagedViewCellLayout extends ViewGroup implements Page {
+     protected ViewGroup.LayoutParams generateLayoutParams(ViewGroup.LayoutParams p) {
+         return new PagedViewCellLayout.LayoutParams(p);
+     }
++    
++    private int mPageNo = -1;
++    
++    @Override
++    public void setPageNo(int pageno) {
++    	mPageNo = pageno;
++    }
++    
++    protected void dumpClass(ViewDebug.DumpControl pdc) {
++    	super.dumpClass(pdc);
++    	pdc.writeEntry("mPageNo", mPageNo);
++    }
+ 
+     public static class LayoutParams extends ViewGroup.MarginLayoutParams {
+         /**
+@@ -437,6 +463,16 @@ public class PagedViewCellLayout extends ViewGroup implements Page {
+         @ViewDebug.ExportedProperty
+         int y;
+ 
++        protected void dumpClass(ViewDebug.DumpControl dp) {
++            dp.writeEntry("cellHSpan", cellHSpan);
++            dp.writeEntry("cellVSpan", cellVSpan);
++            dp.writeEntry("cellX", cellX);
++            dp.writeEntry("cellY", cellY);
++            dp.writeEntry("x", x);
++            dp.writeEntry("y", y);
++            super.dumpClass(dp);
++        }
++
+         public LayoutParams() {
+             super(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+             cellHSpan = 1;
+@@ -514,4 +550,5 @@ interface Page {
+     public void removeAllViewsOnPage();
+     public void removeViewOnPageAt(int i);
+     public int indexOfChildOnPage(View v);
++    public void setPageNo(int pageno);
+ }
+diff --git a/src/com/android/launcher2/PagedViewGridLayout.java b/src/com/android/launcher2/PagedViewGridLayout.java
+index 93626f0..60d77c1 100644
+--- a/src/com/android/launcher2/PagedViewGridLayout.java
++++ b/src/com/android/launcher2/PagedViewGridLayout.java
+@@ -13,12 +13,28 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.launcher2;
+ 
+ import android.content.Context;
+ import android.view.MotionEvent;
+ import android.view.View;
++import android.view.ViewDebug;
+ import android.widget.FrameLayout;
+ import android.widget.GridLayout;
+ 
+@@ -103,6 +119,18 @@ public class PagedViewGridLayout extends GridLayout implements Page {
+     public int indexOfChildOnPage(View v) {
+         return indexOfChild(v);
+     }
++    
++    private int mPageNo = -1;
++    
++    @Override
++    public void setPageNo(int pageno) {
++    	mPageNo = pageno;
++    }
++    
++    protected void dumpClass(ViewDebug.DumpControl pdc) {
++    	super.dumpClass(pdc);
++    	pdc.writeEntry("mPageNo", mPageNo);
++    }
+ 
+     public static class LayoutParams extends FrameLayout.LayoutParams {
+         public LayoutParams(int width, int height) {
+
+project packages/apps/Settings/
+diff --git a/src/com/android/settings/DevelopmentSettings.java b/src/com/android/settings/DevelopmentSettings.java
+index 2ffae19..bedf1a5 100644
+--- a/src/com/android/settings/DevelopmentSettings.java
++++ b/src/com/android/settings/DevelopmentSettings.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.settings;
+ 
+@@ -43,6 +58,7 @@ import android.preference.PreferenceScreen;
+ import android.preference.Preference.OnPreferenceChangeListener;
+ import android.provider.Settings;
+ import android.text.TextUtils;
++import android.util.Log;
+ import android.view.IWindowManager;
+ 
+ /*
+@@ -411,10 +427,12 @@ public class DevelopmentSettings extends PreferenceFragment
+     @Override
+     public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
+ 
++        Log.i("DevelopmentSettings", "[sbq]click isMonkeyRunning(): " + Utils.isMonkeyRunning());
++        /*sbq
+         if (Utils.isMonkeyRunning()) {
+             return false;
+         }
+-
++        */
+         if (preference == mEnableAdb) {
+             if (mEnableAdb.isChecked()) {
+                 mOkClicked = false;
+diff --git a/src/com/android/settings/fuelgauge/BatteryHistoryChart.java b/src/com/android/settings/fuelgauge/BatteryHistoryChart.java
+index a229888..f60657f 100644
+--- a/src/com/android/settings/fuelgauge/BatteryHistoryChart.java
++++ b/src/com/android/settings/fuelgauge/BatteryHistoryChart.java
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.settings.fuelgauge;
+ 
+@@ -33,6 +48,7 @@ import android.text.TextPaint;
+ import android.util.AttributeSet;
+ import android.util.TypedValue;
+ import android.view.View;
++import android.view.ViewDebug;
+ 
+ public class BatteryHistoryChart extends View {
+     static final int CHART_DATA_X_MASK = 0x0000ffff;
+@@ -385,6 +401,37 @@ public class BatteryHistoryChart extends View {
+         mTotalDurationString = Utils.formatElapsedTime(getContext(), mHistEnd - mHistStart);
+     }
+ 
++    protected void dumpClass(ViewDebug.DumpControl pdc) {
++    	super.dumpClass(pdc);
++    	
++    	pdc.writeEntry("mNumHist", mNumHist);
++    	pdc.writeEntry("mHaveGPS", mHaveGps);
++    	pdc.writeEntry("mHaveWifi", mHaveWifi);
++    	pdc.writeEntry("mHavePhoneSignal", mHavePhoneSignal);
++    	pdc.writeEntry("mHistStart", mHistStart);
++    	pdc.writeEntry("mHistEnd", mHistEnd);
++    	pdc.writeEntry("mBatLow", mBatLow);
++    	pdc.writeEntry("mBatHigh", mBatHigh);
++
++        if (mStats.startIteratingHistoryLocked()) {
++        	int i = 0;
++        	final int N = mNumHist;
++
++            final HistoryItem rec = new HistoryItem();
++            while (mStats.getNextHistoryLocked(rec) && i < N) {
++                String recName = "rec" + (i+1);
++            	pdc.writeEntry(recName+"_cmd", rec.cmd);
++            	pdc.writeEntry(recName+"_states", rec.states);
++                if (rec.cmd == BatteryStats.HistoryItem.CMD_UPDATE) {
++                	pdc.writeEntry(recName+"_time", rec.time);
++                	pdc.writeEntry(recName+"_batteryLevel", rec.batteryLevel);
++                }
++                
++                i += 1;
++            }
++        }
++    }
++
+     @Override
+     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+         super.onMeasure(widthMeasureSpec, heightMeasureSpec);

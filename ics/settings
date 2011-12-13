@@ -1,10 +1,31 @@
-
 project packages/apps/Settings/
 diff --git a/src/com/android/settings/DevelopmentSettings.java b/src/com/android/settings/DevelopmentSettings.java
-index 2ffae19..aeb9b0d 100644
+index 2ffae19..bedf1a5 100644
 --- a/src/com/android/settings/DevelopmentSettings.java
 +++ b/src/com/android/settings/DevelopmentSettings.java
-@@ -43,6 +43,7 @@ import android.preference.PreferenceScreen;
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.settings;
+ 
+@@ -43,6 +58,7 @@ import android.preference.PreferenceScreen;
  import android.preference.Preference.OnPreferenceChangeListener;
  import android.provider.Settings;
  import android.text.TextUtils;
@@ -12,7 +33,7 @@ index 2ffae19..aeb9b0d 100644
  import android.view.IWindowManager;
  
  /*
-@@ -411,10 +412,12 @@ public class DevelopmentSettings extends PreferenceFragment
+@@ -411,10 +427,12 @@ public class DevelopmentSettings extends PreferenceFragment
      @Override
      public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
  
@@ -27,10 +48,32 @@ index 2ffae19..aeb9b0d 100644
              if (mEnableAdb.isChecked()) {
                  mOkClicked = false;
 diff --git a/src/com/android/settings/fuelgauge/BatteryHistoryChart.java b/src/com/android/settings/fuelgauge/BatteryHistoryChart.java
-index a229888..fc4398c 100644
+index a229888..f60657f 100644
 --- a/src/com/android/settings/fuelgauge/BatteryHistoryChart.java
 +++ b/src/com/android/settings/fuelgauge/BatteryHistoryChart.java
-@@ -33,6 +33,7 @@ import android.text.TextPaint;
+@@ -13,6 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ 
+ package com.android.settings.fuelgauge;
+ 
+@@ -33,6 +48,7 @@ import android.text.TextPaint;
  import android.util.AttributeSet;
  import android.util.TypedValue;
  import android.view.View;
@@ -38,7 +81,7 @@ index a229888..fc4398c 100644
  
  public class BatteryHistoryChart extends View {
      static final int CHART_DATA_X_MASK = 0x0000ffff;
-@@ -385,6 +386,37 @@ public class BatteryHistoryChart extends View {
+@@ -385,6 +401,37 @@ public class BatteryHistoryChart extends View {
          mTotalDurationString = Utils.formatElapsedTime(getContext(), mHistEnd - mHistStart);
      }
  

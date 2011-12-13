@@ -205,7 +205,7 @@ Android testable.  Once these changes were thoroughly tested
 a diff file was created by going into the ICS home directory: 
 
 $ cd ~windriver/android/ics-build
-$ repo diff > patch.diff
+$ repo diff > ics-r4.diff
 
-The files frameworks, launcher2
-were created by breaking apart patch.diff on project boundaries.
+The files frameworks, launcher2, settings, device, and contacts
+were created by breaking apart ics-r4.diff on project boundaries.

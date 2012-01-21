@@ -1,0 +1,189 @@
+
+project packages/apps/Calendar/
+diff --git a/Android.mk b/Android.mk
+index 7d3d6e5..e0584c4 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -22,7 +22,7 @@ LOCAL_STATIC_JAVA_LIBRARIES := \
+ 		android-common \
+ 		android-common-chips \
+ 		calendar-common
+-LOCAL_SDK_VERSION := current
++#LOCAL_SDK_VERSION := current
+ 
+ LOCAL_RESOURCE_DIR := $(addprefix $(LOCAL_PATH)/, $(res_dirs))
+ 
+diff --git a/src/com/android/calendar/DayView.java b/src/com/android/calendar/DayView.java
+index 85603c0..4be6308 100644
+--- a/src/com/android/calendar/DayView.java
++++ b/src/com/android/calendar/DayView.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.calendar;
+ 
+ import com.android.calendar.CalendarController.EventType;
+@@ -65,6 +79,7 @@ import android.view.MotionEvent;
+ import android.view.ScaleGestureDetector;
+ import android.view.View;
+ import android.view.ViewConfiguration;
++import android.view.ViewDebug;
+ import android.view.ViewGroup;
+ import android.view.WindowManager;
+ import android.view.accessibility.AccessibilityEvent;
+@@ -2985,6 +3000,137 @@ public class DayView extends View implements View.OnCreateContextMenuListener,
+         }
+     }
+ 
++    public void dumpClass(ViewDebug vdp) {
++    	super.dumpClass(vdp);
++    	vdp.writeEntry("mFirstJulianDay", mFirstJulianDay);
++    	vdp.writeEntry("mLastJulianDay", mLastJulianDay);
++    	vdp.writeEntry("mTodayJulianDay", mTodayJulianDay);
++    	vdp.writeEntry("mMonthLength", mMonthLength);
++    	vdp.writeEntry("mFirstVisibleDate", mFirstVisibleDate);
++    	vdp.writeEntry("mFirstVisibleDayOfWeek", mFirstVisibleDayOfWeek);
++    	
++    	vdp.writeEntry("mSelectionDay", mSelectionDay);
++    	vdp.writeEntry("mSelectionHour", mSelectionHour);
++    	vdp.writeEntry("mSelectionAllday", mSelectionAllday);
++    	vdp.writeEntry("mCellHeight", mCellHeight);
++    	// see onScaleBegin()
++        float ViewStartHour = mViewStartY / (float) (mCellHeight + DAY_GAP);
++    	vdp.writeEntry("viewStartHour", ViewStartHour);
++    	vdp.writeEntry("mViewStartY", mViewStartY);
++        vdp.writeEntry("DAY_HEADER_HEIGHT", DAY_HEADER_HEIGHT);
++    	vdp.writeEntry("mLastSelectionDay", mLastSelectionDay);
++    	vdp.writeEntry("mLastSelectionHour", mLastSelectionHour);
++
++    	ViewDebug localVdp = new ViewDebug(vdp);
++        int indent = localVdp.getLevel() + 1;
++        localVdp.setLevel(indent);
++        
++//        dumpDayHeader(localVdp);
++//        dumpHourMargin(localVdp);
++    	
++        int cell = mFirstJulianDay;
++        for (int day = 0; day < mNumDays; day++, cell++) {    	
++    	    dumpEvents(localVdp, cell, day, HOUR_GAP);
++        }
++    }
++    
++    private void dumpDayHeader(ViewDebug vdp) {
++    	// see drawDayHeaderLoop()
++        String[] dayNames;
++        if (mDateStrWidth < mCellWidth) {
++            dayNames = mDayStrs;
++        } else {
++            dayNames = mDayStrs2Letter;
++        }
++        for (int day = 0; day < mNumDays; day++) {
++            int dayOfWeek = day + mFirstVisibleDayOfWeek;
++            if (dayOfWeek >= 14) {
++                dayOfWeek -= 14;
++            }
++            dumpDayHeader(vdp, dayNames[dayOfWeek], day);
++        }
++    	
++    }
++
++    /**
++     * copied from drawDayHeader()
++     */
++    private void dumpDayHeader(ViewDebug vdp, String dayStr, int day) {
++        int dateNum = mFirstVisibleDate + day;
++        int x;
++        if (dateNum > mMonthLength) {
++            dateNum -= mMonthLength;
++        }
++
++        int todayIndex = mTodayJulianDay - mFirstJulianDay;
++        String dateNumStr = String.valueOf(dateNum);
++        // to be continued...
++    }
++    
++    private void dumpHourMargin(ViewDebug vdp) {
++    	// to be continued...
++    }
++    
++
++    private void dumpEvents(ViewDebug vdp, int date, int dayIndex, int top) {
++        int left = computeDayLeftPosition(dayIndex) + 1;
++        int cellWidth = computeDayLeftPosition(dayIndex + 1) - left + 1;
++        final ArrayList<Event> events = mEvents;
++        int numEvents = events.size();
++        EventGeometry geometry = mEventGeometry;
++
++        final int viewEndY = mViewStartY + mViewHeight - DAY_HEADER_HEIGHT - mAlldayHeight;
++    	for(int i = 0; i < numEvents; i++) {
++    		Event event = events.get(i);
++    		if(!geometry.computeEventRect(date, left, top, cellWidth, event)) {
++    			continue;
++    		}
++            // Don't draw it if it is not visible
++            if (event.bottom < mViewStartY || event.top > viewEndY) {
++                continue;
++            }
++            Rect r = getEventRect(event, mViewStartY, viewEndY);
++            
++            vdp.finish();
++            vdp.indent();
++            vdp.writeViewLikeName(event);
++            vdp.writeEntry("screenX", r.left);
++            vdp.writeEntry("screenY", r.top);
++            vdp.writeEntry("getHeight()", r.height());
++            vdp.writeEntry("getWidth()", r.width());
++            vdp.writeEntry("allDay", event.allDay);
++            vdp.writeEntry("location", event.location);
++            vdp.writeEntry("hasAlarm", event.hasAlarm);
++            vdp.writeEntry("id", event.id);
++            vdp.writeEntry("endTime", event.endTime);
++            vdp.writeEntry("startTime", event.startTime);
++            vdp.writeEntry("isRepeating", event.isRepeating);
++            vdp.writeEntry("guestsCanModify", event.guestsCanModify);
++            vdp.writeEntry("endDay", event.endDay);
++            vdp.writeEntry("startDay", event.startDay);
++            vdp.writeEntry("organizer", event.organizer);
++            vdp.writeEntry("mTitle", event.title);
++    	}
++    }
++    
++    private Rect getEventRect(Event event, int visibleTop, int visibleBot) {
++    	Rect r = new Rect();
++
++    	// Event .top/.bottom assume all 24 hours are visible and
++    	// are constant no matter what the scrolling.  An event
++    	// that starts at hour 00 has event.top == 0.
++        r.top = (int) event.top + EVENT_RECT_TOP_MARGIN;
++        r.bottom = (int) event.bottom - EVENT_RECT_BOTTOM_MARGIN;
++        r.left = (int) event.left + EVENT_RECT_LEFT_MARGIN;
++        r.right = (int) event.right - EVENT_RECT_RIGHT_MARGIN;
++
++        // visibleTop is how far the hour grid is scrolled up.
++        // 0 => hour 00 is completely exposed, hour grid not scrolled up. 
++        r.top -= visibleTop - DAY_HEADER_HEIGHT;
++        r.bottom -= visibleTop - DAY_HEADER_HEIGHT;
++        return r;
++    }
++
+     private void drawEvents(int date, int dayIndex, int top, Canvas canvas, Paint p) {
+         Paint eventTextPaint = mEventTextPaint;
+         int left = computeDayLeftPosition(dayIndex) + 1;
+

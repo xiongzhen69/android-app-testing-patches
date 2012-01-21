@@ -1,0 +1,172 @@
+
+project packages/apps/Settings/
+diff --git a/src/com/android/settings/DevelopmentSettings.java b/src/com/android/settings/DevelopmentSettings.java
+index 2ffae19..1c76fcf 100644
+--- a/src/com/android/settings/DevelopmentSettings.java
++++ b/src/com/android/settings/DevelopmentSettings.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.settings;
+ 
+ import android.app.ActivityManagerNative;
+@@ -43,6 +57,7 @@ import android.preference.PreferenceScreen;
+ import android.preference.Preference.OnPreferenceChangeListener;
+ import android.provider.Settings;
+ import android.text.TextUtils;
++import android.util.Log;
+ import android.view.IWindowManager;
+ 
+ /*
+@@ -411,10 +426,12 @@ public class DevelopmentSettings extends PreferenceFragment
+     @Override
+     public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
+ 
++        Log.i("DevelopmentSettings", "[sbq]click isMonkeyRunning(): " + Utils.isMonkeyRunning());
++        /*sbq
+         if (Utils.isMonkeyRunning()) {
+             return false;
+         }
+-
++        */
+         if (preference == mEnableAdb) {
+             if (mEnableAdb.isChecked()) {
+                 mOkClicked = false;
+diff --git a/src/com/android/settings/fuelgauge/BatteryHistoryChart.java b/src/com/android/settings/fuelgauge/BatteryHistoryChart.java
+index a229888..503f037 100644
+--- a/src/com/android/settings/fuelgauge/BatteryHistoryChart.java
++++ b/src/com/android/settings/fuelgauge/BatteryHistoryChart.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.settings.fuelgauge;
+ 
+ import com.android.settings.R;
+@@ -33,6 +47,7 @@ import android.text.TextPaint;
+ import android.util.AttributeSet;
+ import android.util.TypedValue;
+ import android.view.View;
++import android.view.ViewDebug;
+ 
+ public class BatteryHistoryChart extends View {
+     static final int CHART_DATA_X_MASK = 0x0000ffff;
+@@ -385,6 +400,37 @@ public class BatteryHistoryChart extends View {
+         mTotalDurationString = Utils.formatElapsedTime(getContext(), mHistEnd - mHistStart);
+     }
+ 
++    protected void dumpClass(ViewDebug vdp) {
++        super.dumpClass(vdp);
++
++        vdp.writeEntry("mNumHist", mNumHist);
++        vdp.writeEntry("mHaveGPS", mHaveGps);
++        vdp.writeEntry("mHaveWifi", mHaveWifi);
++        vdp.writeEntry("mHavePhoneSignal", mHavePhoneSignal);
++        vdp.writeEntry("mHistStart", mHistStart);
++        vdp.writeEntry("mHistEnd", mHistEnd);
++        vdp.writeEntry("mBatLow", mBatLow);
++        vdp.writeEntry("mBatHigh", mBatHigh);
++
++        if (mStats.startIteratingHistoryLocked()) {
++            int i = 0;
++            final int N = mNumHist;
++
++            final HistoryItem rec = new HistoryItem();
++            while (mStats.getNextHistoryLocked(rec) && i < N) {
++                String recName = "rec" + (i+1);
++                vdp.writeEntry(recName+"_cmd", rec.cmd);
++                vdp.writeEntry(recName+"_states", rec.states);
++                if (rec.cmd == BatteryStats.HistoryItem.CMD_UPDATE) {
++                    vdp.writeEntry(recName+"_time", rec.time);
++                    vdp.writeEntry(recName+"_batteryLevel", rec.batteryLevel);
++                }
++
++                i += 1;
++            }
++        }
++    }
++
+     @Override
+     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+diff --git a/src/com/android/settings/inputmethod/InputMethodAndLanguageSettings.java b/src/com/android/settings/inputmethod/InputMethodAndLanguageSettings.java
+index 4454389..03a1036 100644
+--- a/src/com/android/settings/inputmethod/InputMethodAndLanguageSettings.java
++++ b/src/com/android/settings/inputmethod/InputMethodAndLanguageSettings.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.settings.inputmethod;
+ 
+ import com.android.settings.R;
+@@ -40,6 +54,7 @@ import android.preference.PreferenceScreen;
+ import android.provider.Settings;
+ import android.provider.Settings.System;
+ import android.text.TextUtils;
++import android.util.Log;
+ import android.view.inputmethod.InputMethodInfo;
+ import android.view.inputmethod.InputMethodManager;
+ 
+@@ -217,9 +232,12 @@ public class InputMethodAndLanguageSettings extends SettingsPreferenceFragment
+     @Override
+     public boolean onPreferenceTreeClick(PreferenceScreen preferenceScreen, Preference preference) {
+         // Input Method stuff
++    	Log.i("InputMethodAndLanguageSettings", "isMonkeyRunning(): " + Utils.isMonkeyRunning());
++    	/*sbq
+         if (Utils.isMonkeyRunning()) {
+             return false;
+         }
++        */
+         if (preference instanceof PreferenceScreen) {
+             if (preference.getFragment() != null) {
+                 // Fragment will be handled correctly by the super class.

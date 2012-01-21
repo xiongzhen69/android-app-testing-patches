@@ -1,0 +1,1067 @@
+
+project packages/apps/Gallery2/
+diff --git a/Android.mk b/Android.mk
+index 0f5170f..fff49ad 100644
+--- a/Android.mk
++++ b/Android.mk
+@@ -14,7 +14,7 @@ LOCAL_PACKAGE_NAME := Gallery2
+ LOCAL_OVERRIDES_PACKAGES := Gallery Gallery3D GalleryNew3D
+ 
+ # We mark this out until Mtp and MediaMetadataRetriever is unhidden.
+-LOCAL_SDK_VERSION := current
++#LOCAL_SDK_VERSION := current
+ 
+ LOCAL_PROGUARD_FLAG_FILES := proguard.flags
+ 
+diff --git a/src/com/android/gallery3d/app/AlbumPage.java b/src/com/android/gallery3d/app/AlbumPage.java
+index 6fb4143..c720380 100644
+--- a/src/com/android/gallery3d/app/AlbumPage.java
++++ b/src/com/android/gallery3d/app/AlbumPage.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.gallery3d.app;
+ 
+ import android.app.Activity;
+@@ -27,6 +41,7 @@ import android.view.ActionMode;
+ import android.view.Menu;
+ import android.view.MenuInflater;
+ import android.view.MenuItem;
++import android.view.ViewDebug;
+ import android.widget.Toast;
+ 
+ import com.android.gallery3d.R;
+@@ -138,7 +153,25 @@ public class AlbumPage extends ActivityState implements GalleryActionBar.Cluster
+             super.render(canvas);
+             canvas.restore();
+         }
++        
++        public void dumpTdk(ViewDebug vdp) {
++        	ViewDebug localVdp = new ViewDebug(vdp);
++        	localVdp.setLevel(vdp.getLevel() + 1);
++        	super.dumpTdk(localVdp);
++        	AlbumPage.this.dumpTdk(localVdp);
++        }
+     };
++    
++    protected void dumpTdk(ViewDebug vdp) {
++    	vdp.writeEntry("mIsActive", mIsActive);
++    	if(mMediaSetPath != null) {
++    		String mediaPath = mMediaSetPath.toString();
++    		vdp.writeEntry("mMediaSetPath", mediaPath);
++    	}
++    	if(mAlbumView != null) {
++    		mAlbumView.dumpTdk(vdp, mSelectionManager);
++    	}
++    }
+ 
+     @Override
+     protected void onBackPressed() {
+diff --git a/src/com/android/gallery3d/app/AlbumSetPage.java b/src/com/android/gallery3d/app/AlbumSetPage.java
+index e1dcade..be6e873 100644
+--- a/src/com/android/gallery3d/app/AlbumSetPage.java
++++ b/src/com/android/gallery3d/app/AlbumSetPage.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.gallery3d.app;
+ 
+ import android.app.Activity;
+@@ -27,6 +41,7 @@ import android.view.ActionMode;
+ import android.view.Menu;
+ import android.view.MenuInflater;
+ import android.view.MenuItem;
++import android.view.ViewDebug;
+ import android.widget.Toast;
+ 
+ import com.android.gallery3d.R;
+@@ -142,7 +157,25 @@ public class AlbumSetPage extends ActivityState implements
+             super.render(canvas);
+             canvas.restore();
+         }
++        
++        public void dumpTdk(ViewDebug vdp) {
++        	ViewDebug localVdp = new ViewDebug(vdp);
++        	localVdp.setLevel(vdp.getLevel() + 1);
++        	super.dumpTdk(localVdp);
++        	AlbumSetPage.this.dumpTdk(localVdp);
++        }
+     };
++    
++    protected void dumpTdk(ViewDebug vdp) {
++//    	mRootPane.dumpOwnedTdk(vdp, this);
++    	vdp.writeEntry("mShowDetails", mShowDetails);
++    	vdp.writeEntry("mTitle", mTitle);
++    	vdp.writeEntry("mIsActive", mIsActive);
++    	if(mAlbumSetView != null) {
++    		mAlbumSetView.dumpTdk(vdp, mSelectionManager);
++    	}
++    	// savePositions() -- see down below
++    }
+ 
+     @Override
+     public void onEyePositionChanged(float x, float y, float z) {
+@@ -233,6 +266,11 @@ public class AlbumSetPage extends ActivityState implements
+     }
+ 
+     public void onLongTap(int slotIndex) {
++    	try {
++    		throw new Exception("fake");
++    	} catch (Exception x) {
++    		Log.e("AlbumSetPage", "======= fake fake fake ======", x);
++    	}
+         if (mGetContent || mGetAlbum) return;
+         if (mShowDetails) {
+             onSingleTapUp(slotIndex);
+diff --git a/src/com/android/gallery3d/app/PhotoPage.java b/src/com/android/gallery3d/app/PhotoPage.java
+index ed67b08..118d1e8 100644
+--- a/src/com/android/gallery3d/app/PhotoPage.java
++++ b/src/com/android/gallery3d/app/PhotoPage.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.gallery3d.app;
+ 
+ import android.app.ActionBar;
+@@ -30,6 +44,7 @@ import android.view.Menu;
+ import android.view.MenuInflater;
+ import android.view.MenuItem;
+ import android.view.View;
++import android.view.ViewDebug;
+ import android.view.View.MeasureSpec;
+ import android.view.WindowManager;
+ import android.widget.ShareActionProvider;
+@@ -147,7 +162,31 @@ public class PhotoPage extends ActivityState
+                         right, bottom);
+             }
+         }
++        
++        public void dumpTdk(ViewDebug vdp) {
++        	ViewDebug localVdp = new ViewDebug(vdp);
++        	localVdp.setLevel(vdp.getLevel() + 1);
++        	super.dumpTdk(localVdp);
++        	PhotoPage.this.dumpTdk(localVdp);
++        }
+     };
++    
++    protected void dumpTdk(ViewDebug vdp) {
++    	vdp.writeEntry("mIsActive", mIsActive);
++    	if(mCurrentPhoto != null) {
++    		vdp.writeEntry("mTitle", mCurrentPhoto.getName());
++    		vdp.writeEntry("mRotation", mCurrentPhoto.getRotation());
++    	}
++    	vdp.writeEntry("mModel", mModel.getClass().getSimpleName());
++    	vdp.writeEntry("mCurrentIndex", mCurrentIndex);
++    	if(mPhotoView != null) {
++    		mPhotoView.dumpTdk(vdp);
++    	}
++    	if(mFilmStripView != null) {
++    		mFilmStripView.dumpTdk(vdp);
++    	}
++    	
++    }
+ 
+     private void initFilmStripView() {
+         Config.PhotoPage config = Config.PhotoPage.get((Context) mActivity);
+diff --git a/src/com/android/gallery3d/photoeditor/PhotoView.java b/src/com/android/gallery3d/photoeditor/PhotoView.java
+index 0d4caa8..bf1500b 100644
+--- a/src/com/android/gallery3d/photoeditor/PhotoView.java
++++ b/src/com/android/gallery3d/photoeditor/PhotoView.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.gallery3d.photoeditor;
+ 
+ import android.content.Context;
+diff --git a/src/com/android/gallery3d/ui/AlbumSetSlidingWindow.java b/src/com/android/gallery3d/ui/AlbumSetSlidingWindow.java
+index 87ff557..01af93a 100644
+--- a/src/com/android/gallery3d/ui/AlbumSetSlidingWindow.java
++++ b/src/com/android/gallery3d/ui/AlbumSetSlidingWindow.java
+@@ -13,12 +13,27 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.gallery3d.ui;
+ 
+ import android.graphics.Bitmap;
+ import android.graphics.Color;
+ import android.os.Message;
++import android.view.ViewDebug;
+ 
+ import com.android.gallery3d.R;
+ import com.android.gallery3d.app.GalleryActivity;
+@@ -123,6 +138,14 @@ public class AlbumSetSlidingWindow implements AlbumSetView.ModelListener {
+         return slotIndex >= mActiveStart && slotIndex < mActiveEnd;
+     }
+ 
++    // sbq
++    public Path getAlbumPath(AlbumSetItem item) {
++    	if(item instanceof MyAlbumSetItem) {
++    		return ((MyAlbumSetItem) item).setPath;
++    	}
++    	return null;
++    }
++
+     private void setContentWindow(int contentStart, int contentEnd) {
+         if (contentStart == mContentStart && contentEnd == mContentEnd) return;
+ 
+@@ -245,7 +268,7 @@ public class AlbumSetSlidingWindow implements AlbumSetView.ModelListener {
+         }
+         item.labelItem = new LabelDisplayItem(slotIndex);
+         item.setDataVersion = getMediaSetDataVersion(set);
+-        mData[slotIndex % mData.length] = item;
++        mData[slotIndex % mData.length] = item; //sbq
+     }
+ 
+     private boolean isCoverItemsChanged(int slotIndex) {
+@@ -485,6 +508,43 @@ public class AlbumSetSlidingWindow implements AlbumSetView.ModelListener {
+         return set.getCacheStatus();
+     }
+ 
++    // See also AlbumSlidingWindow.dumpTdk()\
++    //
++    public void dumpTdk(ViewDebug vdp) {
++    	vdp.writeEntry("mContentEnd", mContentEnd);
++    	vdp.writeEntry("mContentStart", mContentStart);
++    	vdp.writeEntry("mActiveStart", mActiveStart);
++    	vdp.writeEntry("mActiveEnd", mActiveEnd);
++    	vdp.writeEntry("mItemCount", mSize);
++    	// I think this is correct:
++    	vdp.writeEntry("mFirstPosition", mActiveStart);
++    	
++    	// Note: mSource is an AlbumSetDataAdapter object.
++    	// setContentWindow() - where the active range is set
++//
++//    	int indent = vdp.getLevel() + 1;
++//        ViewDebug localVdp = new ViewDebug(vdp);
++//        for (int i = mContentStart, n = mContentEnd; i < n; ++i) {
++//            MediaSet set = mSource.getMediaSet(i);
++//            MyAlbumSetItem item = mData[i % mData.length];
++//            
++//            localVdp.setLevel(indent);
++//            dumpItem(localVdp, slotview, item);
++//        }
++    }
++    
++//    private void dumpItem(ViewDebug vdp, SlotView slotview, MyAlbumSetItem item) {
++//    	if(item == null) return;
++//    	vdp.finish();
++//    	vdp.indent();
++//    	vdp.writeViewLikeName(item);
++//    	if(item.labelItem instanceof LabelDisplayItem) {   
++//    		((LabelDisplayItem) (item.labelItem)).dumpTdk(vdp);
++//    	}
++//    	Rect r;
++//    	Rect rect = getSlotLocation(slotIndex)
++//    }
++
+     private class LabelDisplayItem extends DisplayItem {
+         private static final int FONT_COLOR_TITLE = Color.WHITE;
+         private static final int FONT_COLOR_COUNT = 0x80FFFFFF;  // 50% white
+@@ -548,6 +608,13 @@ public class AlbumSetSlidingWindow implements AlbumSetView.ModelListener {
+             return 0;
+         }
+ 
++        public void dumpTdk(ViewDebug vdp) {
++        	super.dumpTdk(vdp);
++        	vdp.writeEntry("mTitle", mTitle);
++        	vdp.writeEntry("mCount", mCount);
++        	vdp.writeEntry("mSlotIndex", mSlotIndex);
++        }
++
+         @Override
+         public long getIdentity() {
+             return System.identityHashCode(this);
+diff --git a/src/com/android/gallery3d/ui/AlbumSetView.java b/src/com/android/gallery3d/ui/AlbumSetView.java
+index 86398ec..8a143d2 100644
+--- a/src/com/android/gallery3d/ui/AlbumSetView.java
++++ b/src/com/android/gallery3d/ui/AlbumSetView.java
+@@ -13,15 +13,31 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.gallery3d.ui;
+ 
+ import android.graphics.Rect;
++import android.view.ViewDebug;
+ 
+ import com.android.gallery3d.app.GalleryActivity;
+ import com.android.gallery3d.common.Utils;
+ import com.android.gallery3d.data.MediaItem;
+ import com.android.gallery3d.data.MediaSet;
++import com.android.gallery3d.data.Path;
+ import com.android.gallery3d.ui.PositionRepository.Position;
+ 
+ import java.util.Random;
+@@ -196,6 +212,56 @@ public class AlbumSetView extends SlotView {
+ 
+         invalidate();
+     }
++    
++    final static boolean TRUE = true;
++
++    public void dumpTdk(ViewDebug vdp, SelectionManager selectionManager) {
++    	// Indent us by 1
++    	ViewDebug localVdp = new ViewDebug(vdp);
++    	int indent = vdp.getLevel() + 1;
++    	localVdp.setLevel(indent);
++    	// SlotView.dumpTdk() -> GLView.dumpTdk()
++    	super.dumpTdk(localVdp);
++
++    	localVdp.writeEntry("mVisibleStart", mVisibleStart);
++    	localVdp.writeEntry("mVisibleEnd", mVisibleEnd);
++    	// scroll values displayed by super
++//    	localVdp.writeEntry("mScrollX", getScrollX());
++//    	localVdp.writeEntry("mScrollY", getScrollY());
++
++    	if(mDataWindow != null) {
++    		mDataWindow.dumpTdk(localVdp);
++    	}
++
++    	ViewDebug itemVdp = new ViewDebug(localVdp);
++        int itemIndent = indent + 1;
++    	for(int i = mVisibleStart; i < mVisibleEnd; i++) {
++    		AlbumSetItem item = mDataWindow.get(i);
++    		if(item == null) continue;
++    		itemVdp.setLevel(itemIndent);
++    		itemVdp.finish();
++    		itemVdp.indent();
++    		itemVdp.writeViewLikeName(item);
++    		item.labelItem.dumpTdk(itemVdp);
++    		Rect rect = getSlotLocation(i);
++    		itemVdp.writeEntry("screenX", rect.left);
++    		itemVdp.writeEntry("screenY", rect.top);
++    		itemVdp.writeEntry("mLeft", rect.left);
++    		itemVdp.writeEntry("mTop", rect.top);
++    		// values required by TDK
++    		boolean bSelected = false;
++    		if(mDataWindow != null) {
++    			if(selectionManager != null) {
++	    			Path albumPath = mDataWindow.getAlbumPath(item);
++	    			if(albumPath != null) {
++	    				bSelected = selectionManager.isItemSelected(albumPath);
++	    			}
++    			}
++    		}
++    		itemVdp.writeEntry("isSelected()", bSelected);
++    		itemVdp.writeEntry("getVisibility()", TRUE);
++    	}
++    }
+ 
+     @Override
+     protected void render(GLCanvas canvas) {
+diff --git a/src/com/android/gallery3d/ui/AlbumSlidingWindow.java b/src/com/android/gallery3d/ui/AlbumSlidingWindow.java
+index b40d72c..86b350a 100644
+--- a/src/com/android/gallery3d/ui/AlbumSlidingWindow.java
++++ b/src/com/android/gallery3d/ui/AlbumSlidingWindow.java
+@@ -13,11 +13,26 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.gallery3d.ui;
+ 
+ import android.graphics.Bitmap;
+ import android.os.Message;
++import android.view.ViewDebug;
+ 
+ import com.android.gallery3d.app.GalleryActivity;
+ import com.android.gallery3d.common.BitmapUtils;
+@@ -275,6 +290,18 @@ public class AlbumSlidingWindow implements AlbumView.ModelListener {
+         }
+     }
+ 
++    // See also AlbumSetSlidingWindow.dumpTDK()
++    //
++    public void dumpTdk(ViewDebug vdp) {
++    	vdp.writeEntry("mContentEnd", mContentEnd);
++    	vdp.writeEntry("mContentStart", mContentStart);
++    	vdp.writeEntry("mActiveStart", mActiveStart);
++    	vdp.writeEntry("mActiveEnd", mActiveEnd);
++    	vdp.writeEntry("mItemCount", mSize);
++    	vdp.writeEntry("mFirstPosition", mActiveStart);
++    	vdp.writeEntry("mFocusIndex", mFocusIndex);
++    }
++
+     private class AlbumDisplayItem extends AbstractDisplayItem
+             implements FutureListener<Bitmap>, Job<Bitmap> {
+         private Future<Bitmap> mFuture;
+@@ -412,8 +439,31 @@ public class AlbumSlidingWindow implements AlbumView.ModelListener {
+         public String toString() {
+             return String.format("AlbumDisplayItem[%s]", mSlotIndex);
+         }
++        
++        public Path getPath() {
++        	if(mMediaItem != null) {
++        		return mMediaItem.getPath();
++        	}
++        	return null;
++        }
++        
++        public String getName() {
++        	return mMediaItem.getName();
++        }
+     }
+ 
++    public Path getItemPath(DisplayItem item) {
++    	if(item instanceof AlbumDisplayItem) {
++    		return ((AlbumDisplayItem) item).getPath();
++    	}
++    	return null;
++    }
++    public String getItemName(DisplayItem item) {
++    	if(item instanceof AlbumDisplayItem) {
++    		return ((AlbumDisplayItem) item).getName();
++    	}
++    	return null;
++    }
+     public void onSizeChanged(int size) {
+         if (mSize != size) {
+             mSize = size;
+diff --git a/src/com/android/gallery3d/ui/AlbumView.java b/src/com/android/gallery3d/ui/AlbumView.java
+index 6344851..449be93 100644
+--- a/src/com/android/gallery3d/ui/AlbumView.java
++++ b/src/com/android/gallery3d/ui/AlbumView.java
+@@ -13,13 +13,29 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.gallery3d.ui;
+ 
+ import android.graphics.Rect;
++import android.view.ViewDebug;
+ 
+ import com.android.gallery3d.app.GalleryActivity;
+ import com.android.gallery3d.data.MediaItem;
++import com.android.gallery3d.data.Path;
+ import com.android.gallery3d.ui.PositionRepository.Position;
+ 
+ public class AlbumView extends SlotView {
+@@ -137,6 +153,63 @@ public class AlbumView extends SlotView {
+         mVisibleEnd = end;
+     }
+ 
++    final static boolean TRUE = true;
++
++    public void dumpTdk(ViewDebug vdp, SelectionManager selectionManager) {
++        // Indent us by 1, then call super.
++        ViewDebug localVdp = new ViewDebug(vdp);
++        int indent = vdp.getLevel() + 1;
++        localVdp.setLevel(indent);
++        super.dumpTdk(localVdp);
++
++        localVdp.writeEntry("mVisibleStart", mVisibleStart);
++        localVdp.writeEntry("mVisibleEnd", mVisibleEnd);
++    	
++        if(mDataWindow != null) {
++            mDataWindow.dumpTdk(localVdp);
++        }
++
++        ViewDebug itemVdp = new ViewDebug(localVdp);
++        int itemIndent = indent + 1;
++        for(int i = mVisibleStart; i < mVisibleEnd; i++) {
++        	dumpDisplayItem(itemVdp, selectionManager, i, itemIndent);
++        }
++    }
++
++    final int screenPos[] = new int[2];
++    
++    private void dumpDisplayItem(ViewDebug vdp, SelectionManager selectionManager, int index, int indent) {
++        DisplayItem item = mDataWindow.get(index);
++        if(item == null) return;
++        vdp.setLevel(indent);
++        vdp.finish();
++        vdp.indent();
++        vdp.writeViewLikeName(item);
++        Rect rect = getSlotLocation(index);
++        vdp.writeEntry("mLeft", rect.left);
++        vdp.writeEntry("mTop", rect.top);
++        vdp.writeEntry("getHeight()", rect.height());
++        vdp.writeEntry("getWidth()", rect.width());
++        getScreenPos(screenPos);
++        vdp.writeEntry("screenX", screenPos[0] + rect.left);
++        vdp.writeEntry("screenY", screenPos[1] + rect.top);
++        // values required by TDK
++        boolean bSelected = false;
++		if(mDataWindow != null) {
++    		vdp.writeEntry("itemName", mDataWindow.getItemName(item));
++            Path itemPath = mDataWindow.getItemPath(item);
++            vdp.writeEntry("itemPath", itemPath.toString());
++            if(selectionManager != null) {
++                if(itemPath != null) {
++                    bSelected = selectionManager.isItemSelected(itemPath);
++                }
++            }
++        }
++        vdp.writeEntry("isSelected()", bSelected);
++        vdp.writeEntry("getVisibility()", TRUE);
++        
++    }
++
+     @Override
+     protected void onLayoutChanged(int width, int height) {
+         // Reput all the items
+diff --git a/src/com/android/gallery3d/ui/DisplayItem.java b/src/com/android/gallery3d/ui/DisplayItem.java
+index 6b76ed0..d9e1615 100644
+--- a/src/com/android/gallery3d/ui/DisplayItem.java
++++ b/src/com/android/gallery3d/ui/DisplayItem.java
+@@ -13,9 +13,25 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.gallery3d.ui;
+ 
++import android.view.ViewDebug;
++
+ public abstract class DisplayItem {
+ 
+     protected int mBoxWidth;
+@@ -29,6 +45,11 @@ public abstract class DisplayItem {
+         mBoxHeight = height;
+     }
+ 
++    public void dumpTdk(ViewDebug vdp) {
++    	vdp.writeEntry("getWidth()", mBoxWidth);
++    	vdp.writeEntry("getHeight()", mBoxHeight);
++    }
++
+     // Return values of render():
+     // RENDER_MORE_PASS: more pass is needed for this item
+     // RENDER_MORE_FRAME: need to render next frame (used for animation)
+diff --git a/src/com/android/gallery3d/ui/FilmStripView.java b/src/com/android/gallery3d/ui/FilmStripView.java
+index e6ed49b..2bcd12e 100644
+--- a/src/com/android/gallery3d/ui/FilmStripView.java
++++ b/src/com/android/gallery3d/ui/FilmStripView.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.gallery3d.ui;
+ 
+ import com.android.gallery3d.R;
+@@ -27,6 +41,7 @@ import com.android.gallery3d.data.Path;
+ import android.content.Context;
+ import android.view.MotionEvent;
+ import android.view.View.MeasureSpec;
++import android.view.ViewDebug;
+ 
+ public class FilmStripView extends GLView implements ScrollBarView.Listener,
+         UserInteractionListener {
+@@ -146,6 +161,28 @@ public class FilmStripView extends GLView implements ScrollBarView.Listener,
+         }
+     }
+ 
++    public void dumpTdk(ViewDebug vdp) {
++    	// indent ourself
++    	ViewDebug localVdp = new ViewDebug(vdp);
++    	int indent = vdp.getLevel() + 1;
++    	localVdp.setLevel(indent);
++    	super.dumpTdk(localVdp);
++
++    	String visibility = "VISIBLE";
++    	if(getVisibility() == GLView.INVISIBLE){
++    		visibility = "INVISIBLE";
++    	}
++    	vdp.writeEntry("getVisibility()", visibility);
++    	
++    	if(mAlbumView != null) {
++    		mAlbumView.dumpTdk(localVdp, null);
++    	}
++    	
++//    	if(mScrollBarView != null) {
++//    		mScrollBarView.dumpTdk(localVdp);
++//    	}
++    }
++
+     @Override
+     protected void onMeasure(int widthSpec, int heightSpec) {
+         int height = mTopMargin + mContentSize + mMidMargin + mBarSize + mBottomMargin;
+diff --git a/src/com/android/gallery3d/ui/GLRootView.java b/src/com/android/gallery3d/ui/GLRootView.java
+index f2140bf..1fdfdb4 100644
+--- a/src/com/android/gallery3d/ui/GLRootView.java
++++ b/src/com/android/gallery3d/ui/GLRootView.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.gallery3d.ui;
+ 
+ import com.android.gallery3d.anim.CanvasAnimation;
+@@ -30,6 +44,7 @@ import android.os.SystemClock;
+ import android.util.AttributeSet;
+ import android.util.DisplayMetrics;
+ import android.view.MotionEvent;
++import android.view.ViewDebug;
+ 
+ import java.util.ArrayList;
+ import java.util.LinkedList;
+@@ -110,6 +125,19 @@ public class GLRootView extends GLSurfaceView
+     public GalleryEGLConfigChooser getEGLConfigChooser() {
+         return mEglConfigChooser;
+     }
++    
++    protected void dumpClass(ViewDebug vdp) {
++    	super.dumpClass(vdp);
++    	vdp.writeEntry("mFrameCount", mFrameCount);
++    	
++    	if(mContentView != null) {
++    		vdp.writeEntry("contentView_class", mContentView.getClass().getName());
++    		mContentView.dumpTdk(vdp);
++    	} else {
++    		vdp.writeEntry("contentView_class", "none");
++    	}
++    }
++
+ 
+     @Override
+     public boolean hasStencil() {
+diff --git a/src/com/android/gallery3d/ui/GLView.java b/src/com/android/gallery3d/ui/GLView.java
+index 7491a6f..e3eeb73 100644
+--- a/src/com/android/gallery3d/ui/GLView.java
++++ b/src/com/android/gallery3d/ui/GLView.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.gallery3d.ui;
+ 
+ import com.android.gallery3d.anim.CanvasAnimation;
+@@ -22,6 +36,8 @@ import com.android.gallery3d.common.Utils;
+ import android.graphics.Rect;
+ import android.os.SystemClock;
+ import android.view.MotionEvent;
++import android.view.View;
++import android.view.ViewDebug;
+ 
+ import java.util.ArrayList;
+ 
+@@ -191,6 +207,66 @@ public class GLView {
+         return mRoot;
+     }
+ 
++    /**
++     * Base dump routine for a GLView object.  It should <b>always</b>
++     * be called very first thing in the derived dumpTdk() via super.dumpTDK()
++     * because this version terminates the previous object's dump and
++     * begins this object's dump.
++     * @param vdp - pointer to the ViewDebug object.
++     */
++    public void dumpTdk(ViewDebug vdp) {
++    	vdp.finish();
++    	vdp.indent();
++		vdp.writeViewLikeName(this);
++		dumpPosition(vdp);
++    }
++    
++    public void dumpOwnedTdk(ViewDebug vdp, Object owner) {
++    	vdp.finish();
++    	vdp.indent();
++    	vdp.writeViewLikeName(owner);
++    	dumpPosition(vdp);
++    }
++    
++    private void dumpPosition(ViewDebug vdp) {
++    	dumpScreenPos(vdp);
++		vdp.writeEntry("mLeft", mBounds.left);
++		vdp.writeEntry("mTop", mBounds.top);
++		vdp.writeEntry("getHeight()", getHeight());
++		vdp.writeEntry("getWidth()", getWidth());
++		vdp.writeEntry("mScrollY", mScrollY);
++		vdp.writeEntry("mScrollX", mScrollX);	
++    }
++
++    private void dumpScreenPos(ViewDebug vdp) {
++    	int pos[] = new int[2];
++    	getScreenPos(pos);
++    	vdp.writeEntry("screenX", pos[0]);
++    	vdp.writeEntry("screenY", pos[1]);    	
++    }
++    
++    protected void getScreenPos(int loc[]) {
++    	int screenX = 0;
++    	int screenY = 0;
++    	GLView oldView = null;
++    	for(GLView view = this; view != null; view = view.mParent){ 
++    		screenX += view.mBounds.left;
++    		screenY += view.mBounds.top;
++    		oldView = view;
++    	}
++    	if(oldView.mRoot instanceof GLRootView) {
++    		View root = (GLRootView)oldView.mRoot;
++    		int screenLocation[] = new int[2];
++    		root.getLocationOnScreen(screenLocation);
++    		screenX += screenLocation[0];
++    		screenY += screenLocation[1];
++    	}
++    	
++    	loc[0] = screenX;
++    	loc[1] = screenY;
++    }
++
++
+     // Request re-rendering of the view hierarchy.
+     // This is used for animation or when the contents changed.
+     public void invalidate() {
+diff --git a/src/com/android/gallery3d/ui/PhotoView.java b/src/com/android/gallery3d/ui/PhotoView.java
+index 5062c0e..291020a 100644
+--- a/src/com/android/gallery3d/ui/PhotoView.java
++++ b/src/com/android/gallery3d/ui/PhotoView.java
+@@ -31,6 +31,7 @@ import android.os.SystemClock;
+ import android.view.GestureDetector;
+ import android.view.MotionEvent;
+ import android.view.ScaleGestureDetector;
++import android.view.ViewDebug;
+ 
+ public class PhotoView extends GLView {
+     @SuppressWarnings("unused")
+@@ -152,6 +153,17 @@ public class PhotoView extends GLView {
+         mVideoPlayIcon = new ResourceTexture(context, R.drawable.ic_control_play);
+     }
+ 
++    public void dumpTdk(ViewDebug vdp) {
++    	// indent ourself
++    	ViewDebug localVdp = new ViewDebug(vdp);
++    	int indent = vdp.getLevel() + 1;
++    	localVdp.setLevel(indent);
++    	super.dumpTdk(localVdp);
++
++    	if(mTileView != null) {
++    		mTileView.dumpTdk(localVdp);
++    	}
++    }
+ 
+     public void setModel(Model model) {
+         if (mModel == model) return;
+diff --git a/src/com/android/gallery3d/ui/SlotView.java b/src/com/android/gallery3d/ui/SlotView.java
+index 3e0e2f2..2e9aa88 100644
+--- a/src/com/android/gallery3d/ui/SlotView.java
++++ b/src/com/android/gallery3d/ui/SlotView.java
+@@ -13,7 +13,21 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.gallery3d.ui;
+ 
+ import android.content.Context;
+@@ -21,6 +35,7 @@ import android.graphics.Rect;
+ import android.os.Handler;
+ import android.view.GestureDetector;
+ import android.view.MotionEvent;
++import android.view.ViewDebug;
+ import android.view.animation.DecelerateInterpolator;
+ 
+ import com.android.gallery3d.anim.Animation;
+@@ -107,6 +122,17 @@ public class SlotView extends GLView {
+         setScrollPosition(position);
+     }
+ 
++    public void dumpTdk(ViewDebug vdp) {
++    	// our caller has already set up this dump, we just add properties
++    	super.dumpTdk(vdp);
++    	vdp.writeEntry("mSlotCount", mLayout.mSlotCount);
++    	vdp.writeEntry("mLayout_mScrollPosition", mLayout.mScrollPosition);
++    	vdp.writeEntry("mUnitCount", mLayout.mUnitCount);
++    	vdp.writeEntry("getVisibleStart()", mLayout.getVisibleStart());
++    	vdp.writeEntry("getVisibleEnd()", mLayout.getVisibleEnd());
++    	
++    }
++
+     public void makeSlotVisible(int index) {
+         Rect rect = mLayout.getSlotRect(index);
+         int visibleBegin = WIDE ? mScrollX : mScrollY;
+@@ -220,6 +246,10 @@ public class SlotView extends GLView {
+     public Rect getSlotRect(int slotIndex) {
+         return mLayout.getSlotRect(slotIndex);
+     }
++    
++    public Rect getSlotLocation(int slotIndex) {
++    	return mLayout.getSlotLocation(slotIndex);
++    }
+ 
+     @Override
+     protected boolean onTouch(MotionEvent event) {
+@@ -602,6 +632,17 @@ public class SlotView extends GLView {
+             return mVisibleEnd;
+         }
+ 
++        public Rect getSlotLocation(int index) {
++        	Rect slotLoc = getSlotRect(index);
++        	int scrollX = (WIDE ? mScrollPosition : 0);
++        	int scrollY = (WIDE ? 0 : mScrollPosition);
++        	slotLoc.left -= scrollX;
++        	slotLoc.right -= scrollX;
++        	slotLoc.top -= scrollY;
++        	slotLoc.bottom -= scrollY;
++        	return slotLoc;
++        }
++
+         public int getSlotIndexByPosition(float x, float y) {
+             int absoluteX = Math.round(x) + (WIDE ? mScrollPosition : 0);
+             int absoluteY = Math.round(y) + (WIDE ? 0 : mScrollPosition);
+diff --git a/src/com/android/gallery3d/ui/TileImageView.java b/src/com/android/gallery3d/ui/TileImageView.java
+index 980f7b2..b417774 100644
+--- a/src/com/android/gallery3d/ui/TileImageView.java
++++ b/src/com/android/gallery3d/ui/TileImageView.java
+@@ -13,12 +13,27 @@
+  * See the License for the specific language governing permissions and
+  * limitations under the License.
+  */
+-
++/*
++ * Copyright (C) 2011 Wind River Systems, Inc.
++ *
++ * Licensed under the Apache License, Version 2.0 (the "License");
++ * you may not use this file except in compliance with the License.
++ * You may obtain a copy of the License at
++ *
++ * http://www.apache.org/licenses/LICENSE-2.0
++ *
++ * Unless required by applicable law or agreed to in writing, software
++ * distributed under the License is distributed on an "AS IS" BASIS,
++ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
++ * See the License for the specific language governing permissions and
++ * limitations under the License.
++ */
+ package com.android.gallery3d.ui;
+ 
+ import android.graphics.Bitmap;
+ import android.graphics.Rect;
+ import android.graphics.RectF;
++import android.view.ViewDebug;
+ 
+ import com.android.gallery3d.app.GalleryContext;
+ import com.android.gallery3d.common.Utils;
+@@ -308,6 +323,21 @@ public class TileImageView extends GLView {
+         out.set(left, top, right, bottom);
+     }
+ 
++    public void dumpTdk(ViewDebug vdp) {
++    	// indent ourself
++    	ViewDebug localVdp = new ViewDebug(vdp);
++    	int indent = vdp.getLevel() + 1;
++    	localVdp.setLevel(indent);
++    	super.dumpTdk(localVdp);
++    	
++    	localVdp.writeEntry("getWidth()", mImageWidth);
++    	localVdp.writeEntry("getHeight()", mImageHeight);
++    	localVdp.writeEntry("mCenterX", mCenterX);
++    	localVdp.writeEntry("mCenterY", mCenterY);
++    	localVdp.writeEntry("mScale", mScale);
++    	localVdp.writeEntry("mRotation", mRotation);
++    }
++
+     public boolean setPosition(int centerX, int centerY, float scale, int rotation) {
+         if (mCenterX == centerX
+                 && mCenterY == centerY && mScale == scale) return false;
+

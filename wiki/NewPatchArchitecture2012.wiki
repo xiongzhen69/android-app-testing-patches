@@ -1,5 +1,5 @@
 #summary The Android API is no longer modified by the patches.
-
+This document pertains to the ICS-403 patch set made available on Jan 21, 2012.
 == ICS Patch Architecture Change ==
 The previous version of the ICS patches added methods and a class to the Android API.  We have redesigned a portion of the patches so this is no longer necessary
 

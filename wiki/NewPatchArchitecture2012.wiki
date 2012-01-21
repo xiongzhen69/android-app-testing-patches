@@ -8,8 +8,8 @@ The previous version of the ICS patches added methods and a class to the Android
 === dumpClass ===
 *dumpClass* is the routine called by !ViewDebug to dump a view.  It's signature has changed:
 {{{
-/*new:*/  protected dumpClass(ViewDebug vdp) {...}
-/*old:*/  protected dumpClass(ViewDebug.DumpControl dp) {...}
+/*new:*/  protected void dumpClass(ViewDebug vdp) {...}
+/*old:*/  protected void dumpClass(ViewDebug.DumpControl dp) {...}
 }}}
 All the methods available through !ViewDebug.!DumpControl are now available through !ViewDebug directly.  However, all the methods have an @hide annotation to prevent them from being entered into the Android API.
 

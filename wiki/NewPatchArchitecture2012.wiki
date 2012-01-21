@@ -6,7 +6,7 @@ The previous version of the ICS patches added methods and a class to the Android
 == Details ==
 
 === dumpClass ===
-*dumpClass* is the routine called by ViewDebug to dump a view.  It's signature has changed:
+*dumpClass* is the routine called by !ViewDebug to dump a view.  It's signature has changed:
 {{{
 /*new:*/  protected dumpClass(ViewDebug vdp) {...}
 /*old:*/  protected dumpClass(ViewDebug.DumpControl dp) {...}

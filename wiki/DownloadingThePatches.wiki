@@ -1,4 +1,4 @@
-#The Source of this project is the patches
+The source of this project is the patches
 
 == Downloading the Patches ==
 

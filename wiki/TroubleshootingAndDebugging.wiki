@@ -16,7 +16,7 @@ The DUMPQ line is logged when !ViewServer gets the DUMPQ request.  The line cont
 
 The DUMPQ-done line is logged after everything is complete.  The number on this line is the number of milliseconds it took to perform the dump.
 
-<li><b>devicelogs</b>.  The purpose of the DUMPQ command is to deliver a description of the GUI objects in a window to the UXTDK agent.  The agent writes each dump to a separate file in a tdk/devicelogs/MM-dd-hh-mm/ directory (MM = month, dd = day, hh = hour, mm = minute).  The directory is created when the agent is started and the agent uses this directory for as long as it is executing.  Each agent DUMPQ command will result in a DUMPQ file.  Here is an excerpt from the agent's log of a test:
+<li><b>devicelogs</b> (examine dump files for sanity).  The purpose of the DUMPQ command is to deliver a description of the GUI objects in a window to the UXTDK agent.  The agent writes each dump to a separate file in a tdk/devicelogs/MM-dd-hh-mm/ directory (MM = month, dd = day, hh = hour, mm = minute).  The directory is created when the agent is started and the agent uses this directory for as long as it is executing.  Each agent DUMPQ command will result in a DUMPQ file.  Here is an excerpt from the agent's log of a test:
 <pre>
 2012-03-29 10:54:24,643 [TDKService] DEBUG|ACTION: findTopWindow: [0](), [1]50
 2012-03-29 10:54:24,644 [ViewHierarchyLoader] INFO |==> DUMPQ ffffffff
@@ -27,7 +27,7 @@ The DUMPQ-done line is logged after everything is complete.  The number on this 
 2012-03-29 10:54:24,823 [ViewHierarchyLoader] INFO |}=> DONE 12
 2012-03-29 10:54:24,823 [TDKService] DEBUG|{findTopWindow} returning (3): [0]0 [1]1 [2]INFO:(dumpFile: 12_dumpq.txt)
 </pre>
-In this excerpt we see that the agent is issuing a DUMPQ command (DUMPQ ffffffff).  A few lines from the bottom you see:  <b>DONE 12</b> which gives the number of the DUMPQ file, 12_dumpq.txt, in the agent's devicelogs/MM-dd-hh-mm directory.
+In this excerpt we see that the agent is issuing a DUMPQ command (DUMPQ ffffffff).  A few lines from the bottom you see:  <b>DONE 12</b> which gives the number of the DUMPQ file, 12_dumpq.txt, in the agent's devicelogs/MM-dd-hh-mm directory where this GUI dump will be written.
 <br><br>
 You can edit these nnn_dumpq.txt files to see if it looks ok.  It contains many really long lines.  If you are having problems with the patches you may be requested to deliver the entire directory to Wind River personnel.  Each line represents a GUI object in the window.  Each line should have at least these elements:
 

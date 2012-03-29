@@ -3,7 +3,7 @@
 == Troubleshooting Guide  ==
 You have applied the patches, but they do not seem to be working.  What to do?
 <ol>
-<li> does this work?
+<li> does this work?</li>
 <li> and this?
 </ol>
   # Did you rebuild the Android system.img and reflash the device?  Are you sure?

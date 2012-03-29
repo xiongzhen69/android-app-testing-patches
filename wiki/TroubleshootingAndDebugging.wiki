@@ -44,3 +44,8 @@ Each line begins with the pattern: <i>dotted-name@hex-number</i>.  For example: 
   # copy !HierarchyViewer.jar to an empty directory on the computer connected to the Android device
   # Navigate the phone (using your fingers) to the window you want to dump.
   # Execute !HierarchyViewer:  java -jar !HierarchyViewer.jar
+  # click the Devices button in !HierarchyViewer
+  # select the Window (in HierarchyViewer) that corresponds to the window you navigated to above.
+  # click the "Load View HierarchyQ" button in HV.
+
+This will display a graphical hierarchy picture of the GUI objects in this window.  It will also create a dump file in a new <b>devicelogs</b> directory that !HierarchyViewer will create.  This gives you the ability to perform one DUMP and see one dump file.

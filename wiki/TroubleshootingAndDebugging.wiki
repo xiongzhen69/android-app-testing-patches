@@ -12,7 +12,7 @@ D/ViewServer(  219): DUMPQ ffffffff
 D/ViewServer(  219): DUMPQ-done 64
 </pre>
 <ol/>
-The DUMPQ line is issued when !ViewServer gets the request.  The line contains the window id (in hex) whose dump is being requested.  All f's means "the current focus window".
+The DUMPQ line is logged when !ViewServer gets the DUMPQ request.  The line contains the window id (in hex) whose dump is being requested.  All f's means "the current focus window".
 
 The DUMPQ-done line is logged after everything is complete.  The number on this line is the number of milliseconds it took to perform the dump.
 
@@ -29,7 +29,7 @@ The DUMPQ-done line is logged after everything is complete.  The number on this 
 </pre>
 In this excerpt we see that the agent is issuing a DUMPQ command (DUMPQ ffffffff).  A few lines from the bottom you see:  <b>DONE 12</b> which gives the number of the DUMPQ file, 12_dumpq.txt, in the agent's devicelogs/MM-dd-hh-mm directory.
 <br><br>
-You can edit these nnn_dumpq.txt files.  Each line represents a GUI object in the window.  Each line should have at least these elements:
+You can edit these nnn_dumpq.txt files to see if it looks ok.  It contains many really long lines.  If you are having problems with the patches you may be requested to deliver the entire directory to Wind River personnel.  Each line represents a GUI object in the window.  Each line should have at least these elements:
 <ul>
 <li>screenX
 <li>screenY
@@ -39,3 +39,4 @@ You can edit these nnn_dumpq.txt files.  Each line represents a GUI object in th
 <li>mLeft
 <li>mTop
 <ul/>
+Each line begins with the pattern: <i>dotted-name@hex-number</i>.  For example: android.widget.!FrameLayout@40599930.   If you see such a pattern in the middle of a line (except the first line), this is almost for certain an error.

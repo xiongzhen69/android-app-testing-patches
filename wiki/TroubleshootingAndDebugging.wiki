@@ -2,9 +2,9 @@
 
 == Troubleshooting Guide  ==
 You have applied the patches, but they do not seem to be working.  What to do?
-<ul>
-<li> does this work?
+<ol>
+<li> does this work?<br>and if there is more?
 <li> and this?
-<ul/>
+<ol/>
   # Did you rebuild the Android system.img and reflash the device?  Are you sure?
   # logcat

@@ -27,4 +27,4 @@ The DUMPQ-done line is logged after everything is complete.  The number on this 
 2012-03-29 10:54:24,823 [ViewHierarchyLoader] INFO |}=> DONE 12
 2012-03-29 10:54:24,823 [TDKService] DEBUG|{findTopWindow} returning (3): [0]0 [1]1 [2]INFO:(dumpFile: 12_dumpq.txt)
 </pre>
-In this excerpt we see that the agent is issuing a DUMPQ command (DUMPQ ffffffff).  A few lines from the bottom you see:  <b>DONE 12</b> which gives the number of the DUMPQ file, 12_dumpq.txt, in the devicelogs/MM-dd-hh-mm directory.
+In this excerpt we see that the agent is issuing a DUMPQ command (DUMPQ ffffffff).  A few lines from the bottom you see:  <b>DONE 12</b> which gives the number of the DUMPQ file, 12_dumpq.txt, in the agent's devicelogs/MM-dd-hh-mm directory.

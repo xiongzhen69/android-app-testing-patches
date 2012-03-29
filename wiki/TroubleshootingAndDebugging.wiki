@@ -29,7 +29,7 @@ The DUMPQ-done line is logged after everything is complete.  The number on this 
 </pre>
 In this excerpt we see that the agent is issuing a DUMPQ command (DUMPQ ffffffff).  A few lines from the bottom you see:  <b>DONE 12</b> which gives the number of the DUMPQ file, 12_dumpq.txt, in the agent's devicelogs/MM-dd-hh-mm directory.
 <br><br>
-You can edit these *_dumpq.txt files.  Each line represents a GUI object in the window.  Each line should have at least these elements:
+You can edit these !*_dumpq.txt files.  Each line represents a GUI object in the window.  Each line should have at least these elements:
 <ol>
 <li>screenX
 <li>screenY

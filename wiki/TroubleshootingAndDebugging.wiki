@@ -3,7 +3,7 @@
 == Troubleshooting Guide  ==
 You have applied the patches, but they do not seem to be working.  What to do?
 <ol>
-<li> Did you rebuild the Android system.img and reflash the device?  Are you sure?
+<li> Did you rebuild the Android system.img and reflash the device with the new system.img?  Are you sure?
 <li><b>adb logcat</b>. The _frameworks_ patch contains a change to !ViewServer.java that logs so you can see it from _adb logcat_.  When you are executing a UXTDK test you should see lines like this in the logcat output (Galaxy Nexus running ICS 4.0.3):
 <pre>
 D/ViewServer(  219): DUMPQ 41b3a580
@@ -40,3 +40,4 @@ You can edit these nnn_dumpq.txt files to see if it looks ok.  It contains many 
   * mTop
 
 Each line begins with the pattern: <i>dotted-name@hex-number</i>.  For example: android.widget.!FrameLayout@40599930.   If you see such a pattern in the middle of a line (except the first line), this is almost for certain an error.
+<li>*Use !HierarchyViewer*.  UXTDK contains a modified !HierarchyViewer.jar that will use DUMPQ.

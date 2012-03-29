@@ -12,6 +12,6 @@ D/ViewServer(  219): DUMPQ ffffffff
 D/ViewServer(  219): DUMPQ-done 64
 </pre>
 <ol/>
-The DUMPQ line is issued when ViewServer gets the request.  The line contains the window id (in hex) whose dump is being requested.  All f's means "the current focus window".
+The DUMPQ line is issued when !ViewServer gets the request.  The line contains the window id (in hex) whose dump is being requested.  All f's means "the current focus window".
 
 After the dump is completed, the DUMPQ-done line contains a millisecond measurement of how long it took.

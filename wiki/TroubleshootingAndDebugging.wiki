@@ -3,8 +3,12 @@
 == Troubleshooting Guide  ==
 You have applied the patches, but they do not seem to be working.  What to do?
 <ol>
-<li> does this work?<br>and if there is more?
-<li> and this?
+<li> Did you rebuild the Android system.img and reflash the device?  Are you sure?
+<li><b>adb logcat</b>. The _frameworks_ patch contains a change to ViewServer.java that logs so you can see it from _adb logcat_.  When you are executing a UXTDK test you should see lines like this in the logcat output (Galaxy Nexus runing ICS 4.0.3):
+<pre>
+D/ViewServer(  219): DUMPQ 41b3a580
+D/ViewServer(  219): DUMPQ-done 135
+D/ViewServer(  219): DUMPQ ffffffff
+D/ViewServer(  219): DUMPQ-done 64
+</pre>
 <ol/>
-  # Did you rebuild the Android system.img and reflash the device?  Are you sure?
-  # logcat

@@ -14,4 +14,5 @@ D/ViewServer(  219): DUMPQ-done 64
 <ol/>
 The DUMPQ line is issued when !ViewServer gets the request.  The line contains the window id (in hex) whose dump is being requested.  All f's means "the current focus window".
 
-After the dump is completed, the DUMPQ-done line contains a millisecond measurement of how long it took.
+The DUMPQ-done line is logged after everything is complete.  The number on this line is the number of milliseconds it took to perform the dump.
+<li><b>devicelogs</b>.  The purpose of the DUMPQ command is to dump a description of the GUI objects in a window to the UXTDK agent.  The agent writes each dump to a separate file in a tdk/devicelogs/MM-dd-hh-mm/ directory (MM = month, dd = day, hh = hour, mm = minute).  When directory is created when the agent starts and the agent uses this directory for as long as it is executing.

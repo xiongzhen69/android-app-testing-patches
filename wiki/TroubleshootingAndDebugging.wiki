@@ -37,6 +37,6 @@ You can edit these nnn_dumpq.txt files to see if it looks ok.  It contains many 
   * getWidth()
   * getVisibility()
   * mLeft
-  * mTop</li>
+  * mTop
 
 Each line begins with the pattern: <i>dotted-name@hex-number</i>.  For example: android.widget.!FrameLayout@40599930.   If you see such a pattern in the middle of a line (except the first line), this is almost for certain an error.

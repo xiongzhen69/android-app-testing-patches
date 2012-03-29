@@ -39,4 +39,4 @@ The Android browser does not expose any GUI info suitable for testing.  The patc
 DUMPQ command processing is recorded in logcat.  When !ViewServer receives the DUMPQ command it logs it.  When !ViewDebug is finished and control passes back to !ViewServer, "DUMPQ-done" will be displayed and the time, in milliseconds, it took to process the command.
 == !HiearchyViewer==
 The output of DUMPQ is compatible with !HierarchyViewer's DUMP command so !HierarchyViewer can display the DUMPQ without modification.
-We have modified !HierarchyViewer, by adding a new button to do DUMPQ in addition to DUMP (i.e., "loadGraphQ" in addition "loadGraph").  
+We have modified !HierarchyViewer, by adding a new button to do DUMPQ in addition to DUMP (i.e., "Load View HierarchyQ" in addition "Load View Hierarchy").  

@@ -17,7 +17,7 @@ The DUMPQ line is issued when !ViewServer gets the request.  The line contains t
 The DUMPQ-done line is logged after everything is complete.  The number on this line is the number of milliseconds it took to perform the dump.
 
 <li><b>devicelogs</b>.  The purpose of the DUMPQ command is to deliver a description of the GUI objects in a window to the UXTDK agent.  The agent writes each dump to a separate file in a tdk/devicelogs/MM-dd-hh-mm/ directory (MM = month, dd = day, hh = hour, mm = minute).  The directory is created when the agent is started and the agent uses this directory for as long as it is executing.  Each agent DUMPQ command will result in a DUMPQ file.  Here is an excerpt from the agent's log of a test:
-<code>
+<font face="courier">
 2012-03-29 10:54:24,643 [TDKService] DEBUG|ACTION: findTopWindow: [0](), [1]50
 2012-03-29 10:54:24,644 [ViewHierarchyLoader] INFO |==> DUMPQ ffffffff
 2012-03-29 10:54:24,645 [ViewHierarchyLoader] INFO |waiting for in.ready
@@ -26,4 +26,4 @@ The DUMPQ-done line is logged after everything is complete.  The number on this 
 2012-03-29 10:54:24,792 [ViewHierarchyLoader] INFO |com.android.internal.policy.impl.PhoneWindow$DecorView@4168eef8: (0, 0)
 2012-03-29 10:54:24,823 [ViewHierarchyLoader] INFO |}=> *DONE 13*</b>
 2012-03-29 10:54:24,823 [TDKService] DEBUG|{findTopWindow} returning (3): [0]0 [1]1 [2]INFO:(dumpFile: 12_dumpq.txt)
-</code>
+</font>

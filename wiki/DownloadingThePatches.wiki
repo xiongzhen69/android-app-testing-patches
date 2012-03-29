@@ -1,3 +1,4 @@
+#summary how to download the patches source
 The source of this project is the patches
 
 == Downloading the Patches ==

@@ -40,4 +40,7 @@ You can edit these nnn_dumpq.txt files to see if it looks ok.  It contains many 
   * mTop
 
 Each line begins with the pattern: <i>dotted-name@hex-number</i>.  For example: android.widget.!FrameLayout@40599930.   If you see such a pattern in the middle of a line (except the first line), this is almost for certain an error.
-<li>*Use !HierarchyViewer*.  UXTDK contains a modified !HierarchyViewer.jar that will use DUMPQ.
+<li>*Use !HierarchyViewer*.  UXTDK contains a modified !HierarchyViewer.jar that will use DUMPQ.  Follow these steps:
+  # copy !HierarchyViewer.jar to an empty directory on the computer connected to the Android device
+  # Navigate the phone (using your fingers) to the window you want to dump.
+  # Execute !HierarchyViewer:  java -jar !HierarchyViewer.jar

@@ -1,0 +1,7 @@
+#summary debugging/troubleshooting advice
+
+== Troubleshooting Guide  ==
+You have applied the patches, but they do not seem to be working.  What to do?
+
+  # Did you rebuild the Android system.img and reflash the device?  Are you sure?
+  # logcat

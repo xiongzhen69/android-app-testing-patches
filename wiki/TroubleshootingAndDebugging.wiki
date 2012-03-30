@@ -16,6 +16,8 @@ The DUMPQ line is logged when !ViewServer gets the DUMPQ request.  The line cont
 
 The DUMPQ-done line is logged after everything is complete.  The number on this line is the number of milliseconds it took to perform the dump.
 
+<li><b>stack dump in logcat</b>.  If you see a stack dump in the logcat output that has ViewServer or ViewDebug in it, that could be a problem created by the patches.  Look carefully at the code indicated by the stack dump.
+
 <li><b>devicelogs</b> (examine dump files for sanity).  The purpose of the DUMPQ command is to deliver a description of the GUI objects in a window to the UXTDK agent.  The agent writes each dump to a separate file in a tdk/devicelogs/MM-dd-hh-mm/ directory (MM = month, dd = day, hh = hour, mm = minute).  The directory is created when the agent is started and the agent uses this directory for as long as it is executing.  Each agent DUMPQ command will result in a DUMPQ file.  Here is an excerpt from the agent's log of a test:
 <pre>
 2012-03-29 10:54:24,643 [TDKService] DEBUG|ACTION: findTopWindow: [0](), [1]50
